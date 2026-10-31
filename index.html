@@ -21,7 +21,7 @@
 <body>
 <p style="top:6%;left:4%;font:22px 'Times New Roman',serif">архивы были только первой <span id="d">дверью</span></p>
 <p style="top:14%;right:3%;max-width:300px;font:13px 'Courier New',monospace;transform:rotate(180deg)">вы открыли не всё. часть файлов повреждена намеренно</p>
-<p style="top:24%;left:50%;width:30px;font:12px Arial,sans-serif;writing-mode:vertical-rl;letter-spacing:4px">следующий сигнал придёт тем же путём</p>
+<p style="top:24%;left:50%;width:30px;font:12px Arial,sans-serif;writing-mode:vertical-rl;letter-spacing:4px">следующий сигнал придёт тем же <span id="f">путём</span></p>
 <p style="top:32%;left:12%;font:bold 34px Georgia,serif;transform:rotate(-8deg)">1997 — не пароль. это год</p>
 <p style="top:57%;right:6%;font:15px 'Courier New',monospace;transform:scaleX(-1)">кто-то из вас уже был здесь в 1998</p>
 <p style="top:66%;left:3%;width:30px;font:18px 'Times New Roman',serif;writing-mode:vertical-lr;transform:rotate(180deg)">не удаляйте скачанное</p>
@@ -37,6 +37,10 @@
   document.getElementById("d").onclick = function () {
     if (String(getSelection())) return;
     location.href = "121297.html";
+  };
+  document.getElementById("f").onclick = function () {
+    if (String(getSelection())) return;
+    location.href = "les.html";
   };
 </script>
 </body>
