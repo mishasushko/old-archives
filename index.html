@@ -23,7 +23,7 @@
 <p style="top:14%;right:3%;max-width:300px;font:13px 'Courier New',monospace;transform:rotate(180deg)">вы открыли не всё. часть файлов повреждена намеренно</p>
 <p style="top:24%;left:50%;width:30px;font:12px Arial,sans-serif;writing-mode:vertical-rl;letter-spacing:4px">следующий сигнал придёт тем же <span id="f">путём</span></p>
 <p style="top:32%;left:12%;font:bold 34px Georgia,serif;transform:rotate(-8deg)">1997 — не пароль. это год</p>
-<p style="top:57%;right:6%;font:15px 'Courier New',monospace;transform:scaleX(-1)">кто-то из вас уже был здесь в 1998</p>
+<p style="top:57%;right:6%;font:15px 'Courier New',monospace;transform:scaleX(-1)"><span id="k">кто-то</span> из вас уже был здесь в 1998</p>
 <p style="top:66%;left:3%;width:30px;font:18px 'Times New Roman',serif;writing-mode:vertical-lr;transform:rotate(180deg)">не удаляйте скачанное</p>
 <p style="top:78%;left:30%;font:italic 16px Georgia,serif;transform:rotate(4deg)">здесь пусто, пока мы не решим иначе</p>
 <p style="top:93%;right:4%;font:11px Arial,sans-serif;letter-spacing:6px;text-transform:uppercase">ищите там, где отсчитывают <span id="o">время</span></p>
@@ -45,6 +45,10 @@
   document.getElementById("o").onclick = function () {
     if (String(getSelection())) return;
     location.href = "tropa.html";
+  };
+  document.getElementById("k").onclick = function () {
+    if (String(getSelection())) return;
+    location.href = "stol.html";
   };
 </script>
 </body>
