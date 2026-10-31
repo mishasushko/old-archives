@@ -26,7 +26,7 @@
 <p style="top:57%;right:6%;font:15px 'Courier New',monospace;transform:scaleX(-1)">кто-то из вас уже был здесь в 1998</p>
 <p style="top:66%;left:3%;width:30px;font:18px 'Times New Roman',serif;writing-mode:vertical-lr;transform:rotate(180deg)">не удаляйте скачанное</p>
 <p style="top:78%;left:30%;font:italic 16px Georgia,serif;transform:rotate(4deg)">здесь пусто, пока мы не решим иначе</p>
-<p style="top:93%;right:4%;font:11px Arial,sans-serif;letter-spacing:6px;text-transform:uppercase">ищите там, где отсчитывают время</p>
+<p style="top:93%;right:4%;font:11px Arial,sans-serif;letter-spacing:6px;text-transform:uppercase">ищите там, где отсчитывают <span id="o">время</span></p>
 <p class="m" style="top:42%;left:8%;transform:rotate(-2deg)">-- -.-- / -. . / -. .- / - .-. --- -. . / -. --- / --.. -. .- . -- / -.-. .- .-. . .---<br>
 -. . / -. --- ... .. -- / -.- --- .-. --- -. / -. --- / ... - --- .. -- / ..- / -.. .-- . .-. . .---<br>
 -. .- ---- / --.. -. .- -.- / ..-.. - --- / --. .-.. .- --.. / -. .- ---- / .-.- --.. -.-- -.- / - .. ---- .. -. .-<br>
@@ -41,6 +41,10 @@
   document.getElementById("f").onclick = function () {
     if (String(getSelection())) return;
     location.href = "les.html";
+  };
+  document.getElementById("o").onclick = function () {
+    if (String(getSelection())) return;
+    location.href = "tropa.html";
   };
 </script>
 </body>
