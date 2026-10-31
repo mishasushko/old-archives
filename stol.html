@@ -46,5 +46,8 @@
     if (!typing && el.textContent !== text) { typing = true; setTimeout(function () { type(0); }, 900); }
   };
 </script>
+<script>
+  try { localStorage.setItem("seen_stol", "1"); } catch (e) {}
+</script>
 </body>
 </html>

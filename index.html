@@ -14,7 +14,8 @@
     p:nth-of-type(4) { font-size: 24px !important; }
     p:nth-of-type(5) { top: 64% !important; }
   }
-  #d, #f, #o, #k { cursor: pointer; }
+  #d, #f, #o, #k, #s { cursor: pointer; }
+  #last { display: none; }
   ::selection { background: #fff; color: #000; }
   ::-moz-selection { background: #fff; color: #000; }
 </style>
@@ -34,6 +35,7 @@
 .. / - .- .--- -. .- / .-- . -.- --- .-- / .-.. .. ---- -..- / -. . -- -. --- --. .. -- / -.. .- -. .-<br>
 -. .- ... / .. --.- ..- - / .--. --- .-- ... ..-- -.. ..- / -. --- / - .-. ..- -.. -. --- / -. .- .--- - ..<br>
 -.- - --- / -- -.-- / - .- -.- .. . / ---. - --- / ... -.- .-. -.-- - -.-- / .-- / - . -. ..</p>
+<p id="last" style="top:86%;left:9%;font:20px 'Courier New',monospace;letter-spacing:3px;transform:rotate(-3deg)">ты нашёл их всех. но оно нашло <span id="s">тебя</span> первым</p>
 <script>
   document.getElementById("d").onclick = function () {
     if (String(getSelection())) return;
@@ -51,6 +53,14 @@
     if (String(getSelection())) return;
     location.href = "stol.html";
   };
+  document.getElementById("s").onclick = function () {
+    if (String(getSelection())) return;
+    location.href = "son.html";
+  };
+  try {
+    if (["121297", "les", "tropa", "stol"].every(function (n) { return localStorage.getItem("seen_" + n); }))
+      document.getElementById("last").style.display = "block";
+  } catch (e) {}
 </script>
 </body>
 </html>
