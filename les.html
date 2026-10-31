@@ -12,12 +12,15 @@
   .ph { position: relative; width: 100%; max-width: 900px; }
   .ph img { max-width: none; }
   .h { position: absolute; left: 66%; top: 34%; margin: 0; color: transparent; font: 15px Georgia, serif; letter-spacing: 3px; transform: rotate(90deg); transform-origin: left top; white-space: nowrap; min-height: 0; }
+  #it { position: absolute; left: 16%; top: 28%; width: 34%; height: 30%; }
+  .ph.hit img { animation: none; opacity: 1; filter: brightness(3.5) contrast(1.4); transform: translate(var(--x, 3px), var(--y, -2px)) scale(1.03); }
   ::selection { background: #fff; color: #000; }
   @keyframes in { to { opacity: 1; } }
 </style>
 </head>
 <body>
-<div class="ph"><img src="les.jpg" alt=""><p class="h">Konferansieri i Errët</p></div>
+<div class="ph"><img src="les.jpg" alt=""><p class="h">Konferansieri i Errët</p><div id="it"></div></div>
+<audio id="a" src="1212.mp3" preload="auto"></audio>
 <p id="t"></p>
 <script>
   var text = "не стоило идти на крики в лесу", i = 0, el = document.getElementById("t");
@@ -27,6 +30,24 @@
     setTimeout(type, 90 + Math.random() * 160);
   }
   setTimeout(type, 6500);
+
+  var ph = document.querySelector(".ph"), snd = document.getElementById("a");
+  var img = ph.querySelector("img");
+  function settle() { img.style.animation = "none"; img.style.opacity = "1"; }
+  img.addEventListener("animationend", settle);
+  document.getElementById("it").onclick = function () {
+    settle();
+    snd.currentTime = 0;
+    snd.play();
+    var n = 0;
+    (function shake() {
+      ph.style.setProperty("--x", (Math.random() * 14 - 7) + "px");
+      ph.style.setProperty("--y", (Math.random() * 10 - 5) + "px");
+      ph.className = n % 3 === 2 ? "ph" : "ph hit";
+      if (++n < 14) setTimeout(shake, 60);
+      else ph.className = "ph";
+    })();
+  };
 </script>
 </body>
 </html>
