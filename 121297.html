@@ -8,7 +8,6 @@
   html, body { margin: 0; min-height: 100%; background: #000; }
   body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px 16px; box-sizing: border-box; }
   .ph { position: relative; width: 100%; max-width: 900px; }
-  #dv { position: absolute; left: 71%; top: 16%; width: 13%; height: 82%; }
   .ph.hit img { filter: brightness(0.35); transition: filter 0.6s; }
   img { display: block; width: 100%; max-width: 900px; height: auto; opacity: 0; animation: in 6s ease-in 0.5s forwards; }
   p { color: #bbb; font: 16px "Courier New", monospace; letter-spacing: 2px; margin: 28px 0 0; min-height: 1.4em; text-align: center; }
@@ -16,7 +15,7 @@
 </style>
 </head>
 <body>
-<div class="ph"><img src="121297.jpg" alt=""><div id="dv"></div></div>
+<div class="ph"><img src="121297.jpg" alt=""></div>
 <audio id="a" src="dver.mp3" preload="auto"></audio>
 <p id="t"></p>
 <script>
@@ -31,7 +30,7 @@
   var ph = document.querySelector(".ph"), img = ph.querySelector("img"), snd = document.getElementById("a");
   function settle() { img.style.animation = "none"; img.style.opacity = "1"; }
   img.addEventListener("animationend", settle);
-  document.getElementById("dv").onclick = function () {
+  ph.onclick = function () {
     settle();
     snd.currentTime = 0;
     snd.play();
