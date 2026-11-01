@@ -22,6 +22,7 @@
 </head>
 <body>
 <div class="ph"><img src="stol.jpg" alt=""><div id="vz"></div></div>
+<audio id="ta" src="tabu.mp3" preload="auto"></audio>
 <div id="tb"><img src="tabu.gif" alt=""><p id="tt"></p></div>
 <p id="t"></p>
 <audio id="a" src="stol.mp3" preload="auto"></audio>
@@ -46,13 +47,17 @@
     tt.textContent = "";
     tbImg.style.animation = "none"; tbImg.offsetWidth; tbImg.style.animation = "";
     tb.className = "on";
+    snd.pause();
+    var ta = document.getElementById("ta");
+    ta.currentTime = 0;
+    ta.play();
     (function t() {
       if (i > line.length) return;
       tt.textContent = line.slice(0, i++);
       setTimeout(t, 110 + Math.random() * 180);
     })();
   };
-  tb.onclick = function () { tb.className = ""; };
+  tb.onclick = function () { tb.className = ""; document.getElementById("ta").pause(); };
 
   ph.onclick = function () {
     settle();
