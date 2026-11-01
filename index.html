@@ -57,6 +57,19 @@
     if (String(getSelection())) return;
     location.href = "son.html";
   };
+  // набранное с клавиатуры слово (в любой раскладке)
+  var typed = "";
+  document.addEventListener("keydown", function (e) {
+    if (e.key.length !== 1) return;
+    typed = (typed + e.key.toLowerCase()).slice(-20);
+    if (/конферансье$|rjyathfycmt$/.test(typed)) {
+      document.body.style.background = "#fff";
+      setTimeout(function () { document.body.style.background = ""; }, 80);
+      setTimeout(function () { document.body.style.background = "#fff"; }, 200);
+      setTimeout(function () { location.href = "sektor69.html"; }, 450);
+    }
+  });
+
   try {
     if (["121297", "les", "tropa", "stol"].every(function (n) { return localStorage.getItem("seen_" + n); }))
       document.getElementById("last").style.display = "block";
