@@ -5,65 +5,133 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>&nbsp;</title>
 <style>
-  html, body { margin: 0; min-height: 100%; background: #000; }
-  body { font: 13px Tahoma, "MS Sans Serif", Arial, sans-serif; color: #000; }
   * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: #000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='1' height='1' fill='%23161616'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23161616'/%3E%3C/svg%3E");
+    font: 11px Tahoma, "MS Sans Serif", Geneva, Arial, sans-serif; color: #000;
+    -webkit-font-smoothing: none; font-smooth: never;
+    overflow: hidden; user-select: none; -webkit-user-select: none;
+  }
+  /* лёгкий кинескоп поверх всего */
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 100;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px),
+                radial-gradient(ellipse at center, transparent 75%, rgba(0,0,0,.3) 100%);
+  }
 
-  .win { background: #c0c0c0; border: 2px solid; border-color: #fff #404040 #404040 #fff; box-shadow: 1px 1px 0 #000; }
-  .bar { background: #000; color: #fff; padding: 3px 4px 3px 6px; font-weight: bold; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .bar span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .x { width: 18px; height: 16px; line-height: 12px; padding: 0; font: bold 11px Arial, sans-serif; background: #c0c0c0; color: #000; border: 2px solid; border-color: #fff #404040 #404040 #fff; cursor: pointer; flex: none; }
-  .btn { padding: 4px 18px; font: 13px Tahoma, Arial, sans-serif; background: #c0c0c0; color: #000; border: 2px solid; border-color: #fff #404040 #404040 #fff; cursor: pointer; }
-  .btn:active, .x:active { border-color: #404040 #fff #fff #404040; }
-  input { width: 100%; border: 2px solid; border-color: #808080 #fff #fff #808080; padding: 3px; font: 14px "Courier New", monospace; background: #fff; color: #000; }
-  label { display: block; margin: 8px 0 3px; }
+  /* ---- рамки в духе Windows 95 ---- */
+  .out { background: #c0c0c0; box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff; }
+  .in  { background: #fff; box-shadow: inset -1px -1px #fff, inset 1px 1px #808080, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a; }
+  .sunk { box-shadow: inset -1px -1px #fff, inset 1px 1px #808080; }
 
-  #login { max-width: 340px; margin: 12vh auto 0; padding: 0 16px; }
-  #login .in { padding: 14px; }
-  #err { font-weight: bold; min-height: 1em; margin-top: 10px; }
+  .win { position: absolute; padding: 3px; display: flex; flex-direction: column; }
+  .bar {
+    height: 18px; flex: none; display: flex; align-items: center; gap: 3px; padding: 0 2px 0 3px;
+    background: linear-gradient(90deg, #000, #6a6a6a); color: #fff; font-weight: bold;
+  }
+  .win.idle .bar { background: linear-gradient(90deg, #7b7b7b, #b5b5b5); color: #d4d4d4; }
+  .bar .ttl { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar svg { flex: none; }
+  .tbtn {
+    width: 16px; height: 14px; padding: 0; flex: none; border: 0; cursor: pointer; position: relative;
+    background: #c0c0c0; box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+  }
+  .tbtn:active { box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080; }
+  .tbtn svg { position: absolute; left: 3px; top: 2px; }
+  .tbtn.close { margin-left: 2px; }
 
-  #ex { display: none; max-width: 760px; margin: 6vh auto 40px; padding: 0 16px; }
-  .addr { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-bottom: 1px solid #808080; }
-  .addr b { font-weight: normal; }
-  .addr div { flex: 1; background: #fff; border: 2px solid; border-color: #808080 #fff #fff #808080; padding: 2px 4px; font-family: "Courier New", monospace; white-space: nowrap; overflow: hidden; }
-  .body { display: flex; min-height: 320px; }
-  .tree { width: 170px; flex: none; background: #fff; margin: 6px 0 6px 6px; border: 2px solid; border-color: #808080 #fff #fff #808080; padding: 6px 4px; font-size: 12px; }
-  .tree div { padding: 2px 4px; cursor: pointer; white-space: nowrap; }
-  .tree div.sel { background: #000; color: #fff; }
-  .files { flex: 1; background: #fff; margin: 6px; border: 2px solid; border-color: #808080 #fff #fff #808080; padding: 10px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; }
-  .f { width: 108px; text-align: center; padding: 6px 2px; cursor: pointer; font-size: 12px; overflow-wrap: anywhere; border: 1px dotted transparent; }
-  .f:hover { border-color: #000; }
-  .f svg { display: block; margin: 0 auto 4px; }
+  .btn {
+    min-width: 75px; height: 23px; padding: 0 12px; border: 0; cursor: pointer; font: inherit; color: #000;
+    background: #c0c0c0; box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+  }
+  .btn.def { outline: 1px solid #000; outline-offset: -1px; }
+  .btn:focus-visible { outline: 1px dotted #000; outline-offset: -5px; }
+  .btn:active { box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080; }
+  .btn:disabled { color: #808080; text-shadow: 1px 1px #fff; }
+  input {
+    width: 100%; height: 21px; border: 0; padding: 3px 4px; font: inherit; color: #000; outline: none;
+    background: #fff; box-shadow: inset -1px -1px #fff, inset 1px 1px #808080, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
+    user-select: text; -webkit-user-select: text;
+  }
+  u { text-decoration: underline; }
+
+  /* ---- диалоги ---- */
+  .dialog { left: 50%; top: 42%; transform: translate(-50%, -50%); width: min(380px, calc(100vw - 32px)); z-index: 30; }
+  .dialog .body { display: flex; gap: 14px; padding: 14px 12px 12px; }
+  .dialog .body > svg { flex: none; }
+  .dialog .fields { flex: 1; }
+  .dialog p { margin: 0 0 12px; line-height: 1.4; }
+  .row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .row label { width: 98px; flex: none; }
+  .btns { display: flex; flex-direction: column; gap: 6px; }
+  .dialog .body.wide { flex-wrap: wrap; }
+  .msg { min-height: 14px; margin-top: 4px; font-weight: bold; }
+  #shade { position: fixed; inset: 0 0 28px; z-index: 25; display: none; }
+  @media (max-width: 420px) {
+    .dialog .body > svg { display: none; }
+    .row label { width: 84px; }
+  }
+
+  /* ---- проводник ---- */
+  #ex { display: none; left: 50%; top: calc(50% - 14px); transform: translate(-50%, -50%); width: min(720px, calc(100vw - 24px)); height: min(470px, calc(100vh - 64px)); z-index: 10; }
+  .menu { display: flex; gap: 0; padding: 2px 0; flex: none; }
+  .menu span { padding: 2px 6px; cursor: default; }
+  .menu span:hover { box-shadow: inset -1px -1px #808080, inset 1px 1px #fff; }
+  .tools { display: flex; align-items: center; gap: 2px; padding: 2px 4px; flex: none; border-top: 1px solid #808080; box-shadow: 0 -1px #fff inset; }
+  .tool { display: flex; align-items: center; gap: 4px; height: 24px; padding: 0 6px; border: 0; background: none; font: inherit; color: #000; cursor: pointer; }
+  .tool:hover:not(:disabled) { box-shadow: inset -1px -1px #808080, inset 1px 1px #fff; }
+  .tool:active:not(:disabled) { box-shadow: inset -1px -1px #fff, inset 1px 1px #808080; }
+  .tool:disabled { color: #808080; cursor: default; }
+  .tool:disabled svg { opacity: .45; }
+  .sep { width: 2px; height: 20px; margin: 0 3px; box-shadow: inset 1px 0 #808080, inset -1px 0 #fff; }
+  .addr { display: flex; align-items: center; gap: 6px; padding: 3px 4px; flex: none; border-top: 1px solid #808080; box-shadow: 0 -1px #fff inset; }
+  .addr .in { flex: 1; height: 21px; display: flex; align-items: center; gap: 4px; padding: 0 4px; white-space: nowrap; overflow: hidden; }
+  .main { flex: 1; display: flex; gap: 3px; min-height: 0; margin-top: 2px; }
+  .tree { width: 172px; flex: none; padding: 4px 2px; overflow: auto; }
+  .tree div { display: flex; align-items: center; gap: 4px; padding: 1px 3px; margin: 1px 0; cursor: pointer; white-space: nowrap; width: max-content; }
+  .tree div.sel span { background: #000; color: #fff; outline: 1px dotted #808080; }
+  .files { flex: 1; padding: 8px; overflow: auto; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px 2px; }
+  .f { width: 92px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 2px; cursor: default; }
+  .f span { padding: 1px 2px; text-align: center; white-space: nowrap; line-height: 1.25; }
+  .f.sel svg { filter: invert(1) brightness(.55); }
+  .f.sel span { background: #000; color: #fff; outline: 1px dotted #c0c0c0; }
   .f.new span { animation: bl 1s steps(1) infinite; }
   @keyframes bl { 50% { visibility: hidden; } }
-  .status { display: flex; justify-content: space-between; padding: 3px 6px; border-top: 1px solid #808080; font-size: 12px; }
-  @media (max-width: 560px) { .tree { display: none; } .body { min-height: 260px; } }
+  .status { display: flex; gap: 2px; margin-top: 2px; flex: none; }
+  .status div { height: 18px; padding: 2px 4px; white-space: nowrap; overflow: hidden; }
+  .status div:first-child { flex: 1; }
+  .status div:last-child { width: 120px; }
+  @media (max-width: 600px) {
+    .tree, .menu { display: none; }
+    #ex { top: 8px; transform: translateX(-50%); height: calc(100vh - 44px); }
+    .tool b { display: none; }
+  }
 
-  #dlg { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.4); z-index: 20; padding: 16px; }
-  #dlg .win { width: 320px; }
-  #dlg .in { padding: 14px; }
+  /* ---- панель задач ---- */
+  #task { position: fixed; left: 0; right: 0; bottom: 0; height: 28px; z-index: 40; display: flex; align-items: center; gap: 4px; padding: 2px; box-shadow: inset 0 1px #dfdfdf, inset 0 2px #fff; }
+  #start { display: flex; align-items: center; gap: 4px; font-weight: bold; min-width: 0; padding: 0 6px; }
+  #tasks { flex: 1; display: flex; gap: 3px; min-width: 0; }
+  .task { max-width: 160px; flex: 1; height: 22px; display: none; align-items: center; gap: 4px; padding: 0 6px; overflow: hidden; white-space: nowrap; font-weight: bold;
+    box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+    background: repeating-conic-gradient(#c0c0c0 0 25%, #fff 0 50%) 0 0 / 2px 2px; }
+  #tray { height: 22px; display: flex; align-items: center; gap: 6px; padding: 0 8px; }
 
-  #note { position: fixed; inset: 0; background: #000; display: none; overflow-y: auto; z-index: 10; }
-  #note .sheet { position: relative; height: 320vh; min-height: 2400px; overflow: hidden; }
-  #note .sheet p { position: absolute; margin: 0; max-width: 80vw; line-height: 1.5; color: #000; }
-  #note .sheet p.m { font: 12px/2 "Courier New", monospace; max-width: min(620px, 84vw); }
-  #note .sheet p.late { display: none; }
-  #note ::selection { background: #fff; color: #000; }
-
-  #view { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; z-index: 10; overflow-y: auto; }
-  .close { position: fixed; top: 10px; right: 14px; color: #555; font: 14px "Courier New", monospace; cursor: pointer; z-index: 12; background: none; border: 0; }
-  .close:hover { color: #aaa; }
+  /* ---- просмотр фото ---- */
+  #view { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px 40px; z-index: 50; overflow-y: auto; user-select: text; -webkit-user-select: text; }
+  .vclose { position: fixed; top: 10px; right: 14px; color: #555; font: 14px "Courier New", monospace; cursor: pointer; z-index: 52; background: none; border: 0; }
+  .vclose:hover { color: #aaa; }
   .ph { position: relative; width: 100%; max-width: 900px; }
-  .ph > img { display: block; width: 100%; height: auto; opacity: 0; animation: in 6s ease-in .5s forwards; }
+  .ph > img { display: block; width: 100%; height: auto; opacity: 0; animation: fin 6s ease-in .5s forwards; }
   .ph.flash > img { animation: none; opacity: 1; filter: brightness(var(--b, 2.4)) contrast(1.4); transform: translate(var(--x, 3px), var(--y, -2px)) scale(1.03); }
   .ph.dim > img { filter: brightness(.35); transition: filter .6s; }
   .ph .hot { position: absolute; }
   .ph .hidden { position: absolute; margin: 0; color: transparent; font: 15px Georgia, serif; letter-spacing: 3px; transform: rotate(90deg); transform-origin: left top; white-space: nowrap; }
   #view ::selection { background: #fff; color: #000; }
   #cap { color: #bbb; font: 16px "Courier New", monospace; letter-spacing: 2px; margin: 28px 0 0; min-height: 1.4em; text-align: center; }
-  @keyframes in { to { opacity: 1; } }
+  @keyframes fin { to { opacity: 1; } }
 
-  #tb { position: fixed; inset: 0; background: rgba(0,0,0,.92); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 15; }
+  #tb { position: fixed; inset: 0; background: rgba(0,0,0,.92); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 60; }
   #tb img { width: min(320px, 70vw); animation: rise 2.5s ease-out forwards; }
   #tb p { color: #bbb; font: 16px "Courier New", monospace; letter-spacing: 2px; margin-top: 24px; min-height: 1.4em; }
   @keyframes rise { from { opacity: 0; transform: scale(.4) rotate(-200deg); } to { opacity: 1; transform: none; } }
@@ -71,50 +139,91 @@
 </head>
 <body>
 
-<div id="login">
-  <form class="win" id="lf" autocomplete="off">
-    <div class="bar"><span>Вход в архив</span></div>
-    <div class="in">
-      Введите имя пользователя и пароль.
-      <label for="u">Имя пользователя:</label>
-      <input id="u" type="text" spellcheck="false" autocapitalize="off">
-      <label for="pw">Пароль:</label>
-      <input id="pw" type="password">
-      <button type="submit" class="btn" id="ok" style="margin-top:14px">OK</button>
-      <div id="err"></div>
-    </div>
-  </form>
-</div>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-x" viewBox="0 0 8 7"><path d="M0 0h2v1h1v1h2V1h1V0h2v1H7v1H6v1H5v1h1v1h1v1h1v1H6V6H5V5H3v1H2v1H0V6h1V5h1V4h1V3H2V2H1V1H0z"/></symbol>
+  <symbol id="i-min" viewBox="0 0 8 7"><path d="M1 5h6v2H1z"/></symbol>
+  <symbol id="i-max" viewBox="0 0 9 9"><path d="M0 0h9v9H0zM1 2v6h7V2z"/></symbol>
+  <symbol id="i-key" viewBox="0 0 32 32"><circle cx="10" cy="16" r="7" fill="#fff" stroke="#000" stroke-width="2"/><circle cx="8" cy="16" r="2"/><path d="M17 15h13v3h-2v4h-3v-4h-2v3h-3v-3h-3z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 32 32"><rect x="6" y="14" width="20" height="15" fill="#fff" stroke="#000" stroke-width="2"/><path d="M10 14V9a6 6 0 0 1 12 0v5" fill="none" stroke="#000" stroke-width="3"/><rect x="15" y="19" width="2" height="5"/></symbol>
+  <symbol id="i-pc" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="10" fill="#fff" stroke="#000"/><rect x="3" y="3" width="10" height="6"/><path d="M5 12h6v1h2v2H3v-2h2z"/></symbol>
+  <symbol id="i-dir16" viewBox="0 0 16 14"><path d="M.5 2.5h6l1 1.5h8v9.5H.5z" fill="#fff" stroke="#000"/><path d="M.5 5.5h15" stroke="#000"/></symbol>
+  <symbol id="i-dir16o" viewBox="0 0 16 14"><path d="M.5 2.5h6l1 1.5h6v2" fill="#fff" stroke="#000"/><path d="M.5 13.5V2.5M.5 13.5h13l2-7H3z" fill="#c0c0c0" stroke="#000"/></symbol>
+  <symbol id="i-lock16" viewBox="0 0 16 14"><path d="M.5 2.5h6l1 1.5h8v9.5H.5z" fill="#c0c0c0" stroke="#000"/><rect x="6" y="8" width="5" height="4"/><path d="M7 8V6.5a1.5 1.5 0 0 1 3 0V8" fill="none" stroke="#000"/></symbol>
+  <symbol id="i-up" viewBox="0 0 20 18"><path d="M.5 3.5h7l1.5 2h10.5v12H.5z" fill="#fff" stroke="#000"/><path d="M10 8l4 4h-2.5v4h-3v-4H6z"/></symbol>
+  <symbol id="i-back" viewBox="0 0 18 18"><path d="M8 3L2 9l6 6v-4h8V7H8z" fill="#fff" stroke="#000"/></symbol>
+  <symbol id="i-win" viewBox="0 0 16 14"><path d="M1 2l6-1v5.5H1zM8 1l7-1v6.5H8zM1 7.5h6V13l-6-1zM8 7.5h7V14l-7-1z" fill="#000"/><path d="M1 2l6-1v5.5H1z" fill="#fff" stroke="#000" stroke-width=".6"/><path d="M8 7.5h7V14l-7-1z" fill="#808080"/></symbol>
+  <symbol id="i-spk" viewBox="0 0 16 14"><path d="M1 5h3l4-4v12L4 9H1z" fill="#fff" stroke="#000"/><path d="M10 4q2 3 0 6M12 2q4 5 0 10" fill="none" stroke="#000"/></symbol>
+</svg>
 
-<div id="ex">
-  <div class="win">
-    <div class="bar"><span id="title">Проводник</span><button class="x" id="logout" title="Выход">x</button></div>
-    <div class="addr"><b>Адрес</b><div id="path"></div></div>
-    <div class="body">
-      <div class="tree" id="tree"></div>
-      <div class="files" id="files"></div>
+<div id="shade"></div>
+
+<form class="win out dialog" id="login" autocomplete="off">
+  <div class="bar"><span class="ttl">Вход в архив</span><button type="button" class="tbtn close" tabindex="-1"><svg width="8" height="7"><use href="#i-x"/></svg></button></div>
+  <div class="body">
+    <svg width="40" height="40"><use href="#i-key"/></svg>
+    <div class="fields">
+      <p>Введите имя пользователя и пароль для доступа к архиву.</p>
+      <div class="row"><label for="u"><u>И</u>мя пользователя:</label><input id="u" type="text" spellcheck="false" autocapitalize="off" autocomplete="off"></div>
+      <div class="row"><label for="pw"><u>П</u>ароль:</label><input id="pw" type="password" autocomplete="off"></div>
+      <div class="msg" id="err"></div>
     </div>
-    <div class="status"><span id="count"></span><span id="size"></span></div>
+    <div class="btns">
+      <button type="submit" class="btn def" id="ok">OK</button>
+      <button type="button" class="btn" id="cancel">Отмена</button>
+    </div>
   </div>
+</form>
+
+<div class="win out" id="ex">
+  <div class="bar">
+    <svg width="16" height="14"><use href="#i-dir16o"/></svg>
+    <span class="ttl" id="title">Проводник</span>
+    <button class="tbtn" tabindex="-1"><svg width="8" height="7"><use href="#i-min"/></svg></button>
+    <button class="tbtn" tabindex="-1"><svg width="9" height="9" style="left:3px;top:2px"><use href="#i-max"/></svg></button>
+    <button class="tbtn close" id="logout" title="Выход"><svg width="8" height="7"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="menu"><span><u>Ф</u>айл</span><span><u>П</u>равка</span><span><u>В</u>ид</span><span>П<u>е</u>реход</span><span><u>С</u>правка</span></div>
+  <div class="tools">
+    <button class="tool" id="back" disabled><svg width="18" height="18"><use href="#i-back"/></svg><b>Назад</b></button>
+    <button class="tool" id="up" disabled><svg width="20" height="18"><use href="#i-up"/></svg><b>Вверх</b></button>
+    <div class="sep"></div>
+  </div>
+  <div class="addr"><span><u>А</u>дрес</span><div class="in"><svg width="16" height="14" id="addrIcon"><use href="#i-dir16"/></svg><span id="path"></span></div></div>
+  <div class="main">
+    <div class="tree in" id="tree"></div>
+    <div class="files in" id="files"></div>
+  </div>
+  <div class="status"><div class="sunk" id="count"></div><div class="sunk" id="size"></div></div>
 </div>
 
-<div id="dlg">
-  <form class="win" id="df" autocomplete="off">
-    <div class="bar"><span>Доступ ограничен</span><button type="button" class="x" id="dx">x</button></div>
-    <div class="in">
-      <div id="dmsg">Папка защищена паролем.</div>
-      <label for="dp">Пароль:</label>
-      <input id="dp" type="text" spellcheck="false" autocapitalize="off">
-      <button type="submit" class="btn" style="margin-top:14px">OK</button>
-      <div id="derr" style="font-weight:bold;min-height:1em;margin-top:10px"></div>
+<form class="win out dialog" id="dlg" autocomplete="off" style="display:none">
+  <div class="bar"><span class="ttl">Доступ ограничен</span><button type="button" class="tbtn close" id="dx"><svg width="8" height="7"><use href="#i-x"/></svg></button></div>
+  <div class="body">
+    <svg width="40" height="40"><use href="#i-lock"/></svg>
+    <div class="fields">
+      <p id="dmsg">Папка защищена паролем.</p>
+      <div class="row"><label for="dp"><u>П</u>ароль:</label><input id="dp" type="text" spellcheck="false" autocapitalize="off" autocomplete="off"></div>
+      <div class="msg" id="derr"></div>
     </div>
-  </form>
-</div>
+    <div class="btns">
+      <button type="submit" class="btn def">OK</button>
+      <button type="button" class="btn" id="dc">Отмена</button>
+    </div>
+  </div>
+</form>
 
-<div id="note"><button class="close" data-close>[ закрыть ]</button><div class="sheet" id="sheet"></div></div>
+<div id="task" class="out">
+  <button class="btn" id="start"><svg width="16" height="14"><use href="#i-win"/></svg>Пуск</button>
+  <div class="sep"></div>
+  <div id="tasks">
+    <div class="task" id="tLogin"><svg width="16" height="16"><use href="#i-key"/></svg>Вход в архив</div>
+    <div class="task" id="tEx"><svg width="16" height="14"><use href="#i-dir16o"/></svg><span id="tExName">Проводник</span></div>
+  </div>
+  <div id="tray" class="sunk"><svg width="16" height="14"><use href="#i-spk"/></svg><span id="clock"></span></div>
+</div>
 
 <div id="view">
-  <button class="close" data-close>[ закрыть ]</button>
+  <button class="vclose" data-close>[ закрыть ]</button>
   <div class="ph" id="ph"></div>
   <p id="cap"></p>
 </div>
@@ -123,7 +232,7 @@
 
 <script>
   // Всё содержимое зашифровано AES-GCM, ключ получается из логина и пароля (PBKDF2)
-  var SALT = "4c5RXcocxRdozvFnJYHY2w==", ITER = 300000, MANIFEST = "0kL45WGoPui3vmAa.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";
+  var SALT = "4c5RXcocxRdozvFnJYHY2w==", ITER = 300000, MANIFEST = "5tWg6D622wU/GJKC.efv3oOvT1MNCDnBB+nFEs2xXJ97BSDVFB/8D5zGP4whWBHiWJdQThu8tvF+JHqHWp+ke0aueHbUmMuPCU7uXUF+Gtnocg3IDuk5CWOVaTaHURUeL6nl7Uejv1/1JPLtyhkFREXNfSSWXuTjRf/5ZfJBmaOEn6dh6+Wl2X2btCksAXfFq5i7PGtFmQY73zUsCzi1L22oVQB0SLyMolV7P8itct+EJQ8V6MdEYXbM29ZD0Y0kdaXOi8JRSYaNM0Lu7T23ZEppWNgd8IA/nOMjpqP3HklTKIFc3QNf33ji4g6PyWKhGM6FYvawVUE45AJvKadwkQrZ7Knl8Fb56w/k1HyT6ng37wyg6pufpoyFogmQU3rwY6KQTNwuWDzukItScZWcl1Z3ZmCjaule7VCf+ikVZp8xbNcM/vRcGP0tJf612iT/LAlAngFEY/EKIcf3oYeE2/CtAMiTlrs+yqRVJPkOoM+f7p6cw0ncZaH8GXUfSijtVuXCFqSzTez4LXxzv/7RTCvSuLcN9YFWtCLJUnlI+SAMEeVVLoxcccQjJWmIb8CLsTICAqo6jOUIfritVlXGFcjelFrhtmhVmpY9MQWlPSl/n3HNEthHmIY/tJtY5RYc7jGn1c3cXEz03LMjjLAlMZte9Pi+l7G6bDo+rMKcJlxxxlIYX6tKN2KvpooKYY1BMrMTokh0V++nNrZgl81NYQdrAK9J+0aBg+LIWI7jJS49fp/unpE8Cq0MfsGQWSG8ZgXVAGYyonxT93jYXkORb7/2NQUe+fwKAzp9AzCinYo3blg0gFTTNqr+rQJEfiO0Y16Qx3moiPvVvElUynV5YCH/8qavY3HemofQe95iy2wrxNtnBUlEvKR6Ub3Srp/wt/pncFZDTg8akqpXcajJ4gKZHIqAB1eNWkf98/pDI1ioz+3QuvmgbKauFDMDVA8isg0E63uV9aei7ZCOhJxqZhI9bSnjftxeUaJ3UDKVYuAUgX/iLGFAU37iyQ9YnxzbDyzxoeEQ9zzH3B/K+rVz/+uRYdl9vU48l8LHQztn078B7018uKG3BEdSyTFiP50sSSygdW++wnAAOjmU5OHNEGWKe6gWPQdYwgXk1tLjqVnL8J0uLHIZQTcdQaB+51vSl/5Ae06lwHhLsMOshx5t0DFh268MXMlEXBmQszTTenVu/JH5LvfBidd1UbMd8cmW/beqewpRDbHVInInJ+2R3g/NM0FkY6vYr2WXt+Okr69eAsOfuX5gP1l3fzXKbk56DMti8PV3XM8eULFZSl2KuiIMJbO9bPp3IClxewljKIf7HSlKecFyJtw2nbc/WuUV9YwPj+f6oDVIx6COOzizB9Kh8+2opCimzpkEjuW8AkIMQTriIfBIgnlGGfZf2gPM6MR5ZNymBeWCgyAvswIib4oKqZwQNklq2XNmGQSqLUFv+8VjclD4jckqsoc5xryGvUPm4je5nXStB1Xwf8jQVk0mAW1uoFoU6888+CIfhRRTgqowL1qweL9Q4fUCT8PUsdl7mN8Dq8TPaT5JPuSzyK/divZ1B0wnm7iVRZtUNrpbLu2p9IGknE+5Ql9VdkyZTjiO5V1J5O6NGlYEGiyDDImSKEXj6xd4kKsN4FOEuc7OZ0plD1ChOyqfJjt7YkZVvABGIl0xj1vwp4DdwRuqJNmkX5f1tUtvcXcx7PxhjaQQximurInWuhFtNz8NnWrkQyzfyDt1Zni0WfFllsh4TGzLvFGXD0eBUnr6Kshtw70Vaz13WSzQyxXH61iqNdxfMkgiBt7V5YIPHVZxRLa7ukPP0Y5q3XAY12Rfnygy2slP3jXuH6GhQHSmVPqxNaP5FQfO/999UoEf1g+P5fAXXHMdgTA0CDD6zdeu3+dXLfU7FdfMaCzGoFV+yajmYAA5Ea0im4pgoHa+L4ZPkiITWEm8fs8A426ATW0Gs7c8AY7vhruawbxzhhCqpLxdkSoZvZs1+DG6rCB893ESW4QwXCsLgmAh9oq1gUqlG36KV+huydbpBCoOjIol9PCZ/Ci8Ayj0QmDxLYiWDPdqO0Z56fiIYS8Y6m7pYGzeHma6rCQraCO9TIzXRNT3tgHGKI1iQBTwjMRrMQftjNFXW23s4yh8XRE6mi6vWREVETJg4Uh9+6AkM99Mb2mUpdmkVWX8XiRc4/j92ZR7XCxV0X1QoFftAleva2u6cJw7VL+DMSaDroUFZUymUoyxWMB1MhbYa3fon4KvCD3PmL/0saZFioavn+5ONGDrxvdhTWeMuSpjoWLl0+j5w+MrSzYsv9WWNpWDKmfHctpBcDF0IAIPhrx8CQwnUviQJv1f+WsbdSLYm/aQELdzDdtKPt1wwgemf2DjL32EPigJaOVBfZDln1C7nUM9Sz/PGzGQzXbwHzK0dEmQmx7U7JTo4zhz6iM+RJgmZ5YgmjOQW1psCJC4Nf7NmAN38WE0dAtm35ijBHS8YpB8aGbi4aRtdzDE4WyNgaDgPoCglisFJhXCMq+ZPflHWNlht86YN69iLU//X1r8YwVBwmptor3puLSY/+1vHDYTBdXmYmBHhGQ8LPySesI4vcspiXNUWboK2CsVf5KkonjMAwrOGawstRgC6vwEPMKPeHeFQ8FXIXDKT1KmwbzjAweNAf3XeK58MyGv9Zwap/VNuIoCF1svzo27OZV+aqkO69hBn3JBK/vj6iX85EDsCG1OWw3RWRAdnceskbX/+ogf8G9urU7tmGAuQ9ZrYORfWuGGr7RwQdSlpjLYFLvp9h+h9IEb5GYuuaib3BJof1uTZbo6tDjFgR8MVBlmTUey5j+e1gOv5WQL0820M1qTFhzaNQbkUaTqyqcQ1S0z/r5Gn+Oo/GnYClJ2w6IZ5jpmjhwWJvia6NqS4cEAx80TvNmERZR1+YG8ieBBZzn3wfTHFbshRPfF4g0di9oky6PQpbcVcuAi5IzXGg/FoaJhNUTkh21oYBQaTRFS+Cz0mudGxfIBkc1AYqorkrUnNlNspr8wYnB3I0uThbNX+eNP/qvqm1kxY4Oba+dBsZnI9mDycpHJ8jMnmdCKxSr9g1fJrA7ugQwnbS0VrnCzPqEsFNkr7ixwSQ6PWWgWU2QzJfJGKACKCnMfu6Y7D8LaTbKnTSJDBA+Vb18cIZJ0ejPS107VxK3hVI1vLKJoe7yCOMWPKsvEZ000nCpa8JSk653zXnQ3mt8k+qjaLQBBXrS65eJVKMdI4qMKTxZTq6A/brucrLGo6+OiPKwLRzZpIG1l/sWFNz51EMN3Hsu66NrdgwuKtshMIozJNtWCnfbcfLyOSm9SNnIX5yHRGM/4AGkTZYfZZt33cePiODqTLpu3WexLhysXmX3VDFR9w31piY+QLu5c7hFQGwM4L4IfdUT3FPfCTM+iK1/CGcbTK8ZtBjSUcw9SzGaAIuL7pjZsFRAFm2DUuyLiBT3PkPltDjs4WNGFhskQZ0WHf1wYYmiljpN3UJaA7zbOSBF2BUDRD6woJtG7JH8EyepYv6V3W81m+yrWPd+rmVQX+73y2Jmy6IzmWYg1L7Lx5CBoMEXXX2hVMfYTFCdcDw7ICIwXlcRSXUAWSSyjAWj04SY3cAw4ADyXefOHHLnHTdpwUlwsQTR9zs231lUA05r4ZCkWNWfJ8I7qam9Bv6xpOyF3vsoJZfzB7xnxeXqYY5zlKZUHH6mLCGZ35YP/fBZr3vamkF6rGZvZFF/9mM/pz8QyDC5b3lUvSTcsAscO65pz1Q8Ln2UlnXrnohpSQkqxLi+brJTyAJIefuDYYH8GGBMnDnOVu1SRBgFQQvzhRwh7xjOkBFgOpoS7j67m7pSm2jp4tKQq1GTPp203JxGRWgun7V0bLQmLkd80VdL45CgjYFwLdNPmuCPvO4SzJ9Nx7DOCn4+NxbfufN5++dZjtdjNlWk8/C3udphAvNLZ0MoBC9Wq5CekPl3KqSq5xzQ0CM6cvZs+cHPi7zZSyfuH6WDGQyAOxrcISON+H367k8Nstm7G7Ejlsw3LCrCtSDVdumCD5R81tan+l1/X4ItMeGTZMGmEQxGnNn2/XbHnzmP0O3FcsrvvwQOfEXUja+lmieSareaHCaRlcHGN8o6GIeV6zefaGI5bxkSN60ned+X3TOX2IG6Slm9XwWYOKqZzKbR/VBVKyaLUQkadBA7EPeREFAQPZZBxo8onBXz1HP19ph3ReqME5EIuT8wglOrzqr9KSyl3nXhlKLEPWI6DqR9a2UfiYWy5WaI3oQBOSvSm0QidPG4gp/mkCRQfVTQ/tq+SglglTe/tHqXSIxY1lP5yoa4cOBMnjhmoUFRZNAQUikPor9bj7WACW9uOEmipYfBA5BEa21rNRcFgt3Zhyvu8sx25u42dBIRO/MJCOkN/33Vt5J1kZ5qNm4DbKCOrp6KQdX9Of1eDtoTNUgHK7VWJjsIlmwh3oSMnHlMJMCJ+i7ltBdOq4uVObgR8SUYSg9foUE+gYnJeuTLLMuKCtSpKCL3mA0sqqtyktwtgnHq8gxeeJOIxo4B1rvZPV92sYzvZ7SaQ5vw5sp4CCoGV1OgPm/8X+P3VBQwYK/tcRiGzF9NLEORio/vu16XxOecWzmWZuaOstzUfKMWuqjr8zoTQsTsHid3Qyuv0Xli4jCdbRo4g9esXF41BlSHpUdEvawyEJqM/sraPxzNp19g9O1GcxvYlUexacO7G1rR3MV9uwbOIArH5q2v1/UW1F+1Jtju5owN8UP4eq4wL8IS9AJEsvFlz4+jE44WtI1uF0+rWQy9oLzQGXHCDFWWio0B6YhzxE8weGlLiD1CPeHJeBX9swzZWahy2Zhdn6FO1DUi6VG1PgLuwnQiaCbDlK4IzUv76XSEHLhlTuMMC0TfS1q61gy0EUMU9qFmsJmQp60mJiG1mJ57pT+K20+7KKbn9dGMZ1B+ZGAfsWVjJ8SHoGq5okEGcN2nEKRs7e/K5+2tqtL6VJ6thxFciSrb35aAPirxCgzzsjwr+/8ibLxr7iBesNo9dl490Qs6wMPqxOtoe4hm3QkVIMni9mwSSxjLd8W1QKUSZjbnmZQel5lU7lAboMv+l6RqJRs1w1wtOFkauCMbsnlhnkXTuHGTKgjIVRzWd34Ewy7T5lI6lfMQtZS0GKf04u6ZSqlIjDyutfw4Ud0lZ73AjS+Jg88SkYC3by5a8xJaWrBzSw7B8qLWHtXSGt6ygzP1/pZuTi6s0sLy9keKslxQ7mxVjqY3H5o0Vqp2HNQ7vceXTFrUhoSEznG8U2cJfP7T0xMSPSsuCFDzREVt4brpOtwpe/c/Rs";
   var KEY = null, M = null, cache = {};
 
   function b64(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
@@ -160,6 +269,15 @@
   function wasSeen(id) { try { return !!localStorage.getItem("seen_" + id); } catch (e) { return false; } }
   function allSeen() { return M.unlock.every(wasSeen); }
 
+  /* ---------- часы и панель задач ---------- */
+
+  function tick() {
+    var d = new Date();
+    $("clock").textContent = d.getHours() + ":" + ("0" + d.getMinutes()).slice(-2);
+  }
+  tick(); setInterval(tick, 10000);
+  $("tLogin").style.display = "flex";
+
   /* ---------- вход ---------- */
 
   function unlock(key, remember) {
@@ -172,23 +290,26 @@
         });
       }
       $("login").style.display = "none";
-      $("ex").style.display = "block";
-      openFolder(M.root);
+      $("tLogin").style.display = "none";
+      $("ex").style.display = "flex";
+      $("tEx").style.display = "flex";
+      go(M.root);
     }, function (e) { KEY = null; throw e; });
   }
 
-  $("lf").onsubmit = function (e) {
+  $("login").onsubmit = function (e) {
     e.preventDefault();
     var err = $("err"), ok = $("ok");
-    err.innerHTML = "Проверка..."; ok.disabled = true;
+    err.textContent = "Проверка..."; ok.disabled = true;
     deriveKey($("u").value, $("pw").value)
       .then(function (key) { return unlock(key, true); })
-      .then(function () { err.innerHTML = ""; }, function () {
-        err.innerHTML = "&#9888; ДОСТУП ЗАПРЕЩЁН";
-        $("pw").value = "";
+      .then(function () { err.textContent = ""; }, function () {
+        err.textContent = "⚠ Доступ запрещён";
+        $("pw").value = ""; $("pw").focus();
       })
       .then(function () { ok.disabled = false; });
   };
+  $("cancel").onclick = function () { $("u").value = ""; $("pw").value = ""; $("err").textContent = ""; };
 
   $("logout").onclick = function () {
     try { sessionStorage.removeItem("k"); } catch (e) {}
@@ -198,7 +319,7 @@
   (function () {
     var k = null;
     try { k = sessionStorage.getItem("k"); } catch (e) {}
-    if (!k) return;
+    if (!k) { $("u").focus(); return; }
     crypto.subtle.importKey("raw", b64(k), "AES-GCM", true, ["decrypt"])
       .then(function (key) { return unlock(key, false); })
       .catch(function () {});
@@ -207,12 +328,12 @@
   /* ---------- проводник ---------- */
 
   var ICONS = {
-    dir: '<svg width="36" height="30" viewBox="0 0 36 30"><path d="M1 4h12l3 3h19v22H1z" fill="#fff" stroke="#000" stroke-width="2"/><path d="M1 10h34" stroke="#000" stroke-width="2"/></svg>',
-    lock: '<svg width="36" height="30" viewBox="0 0 36 30"><path d="M1 4h12l3 3h19v22H1z" fill="#c0c0c0" stroke="#000" stroke-width="2"/><rect x="13" y="15" width="10" height="9" fill="#000"/><path d="M15 15v-3a3 3 0 0 1 6 0v3" fill="none" stroke="#000" stroke-width="2"/></svg>',
-    img: '<svg width="30" height="34" viewBox="0 0 30 34"><path d="M1 1h20l8 8v24H1z" fill="#fff" stroke="#000" stroke-width="2"/><path d="M5 27l7-9 5 6 3-3 5 6z" fill="#000"/><circle cx="20" cy="15" r="2.5" fill="#000"/></svg>',
-    txt: '<svg width="30" height="34" viewBox="0 0 30 34"><path d="M1 1h20l8 8v24H1z" fill="#fff" stroke="#000" stroke-width="2"/><path d="M6 14h17M6 19h17M6 24h12" stroke="#000" stroke-width="2"/></svg>'
+    dir: '<svg width="32" height="28" viewBox="0 0 32 28"><path d="M1 4h11l3 3h16v20H1z" fill="#fff" stroke="#000" stroke-width="2"/><path d="M1 10h30" stroke="#000" stroke-width="2"/><path d="M4 13h24" stroke="#c0c0c0"/></svg>',
+    up: '<svg width="32" height="28" viewBox="0 0 32 28"><path d="M1 4h11l3 3h16v20H1z" fill="#fff" stroke="#000" stroke-width="2"/><path d="M16 11l6 6h-4v6h-4v-6h-4z"/></svg>',
+    lock: '<svg width="32" height="28" viewBox="0 0 32 28"><path d="M1 4h11l3 3h16v20H1z" fill="#c0c0c0" stroke="#000" stroke-width="2"/><rect x="11" y="15" width="10" height="9"/><path d="M13 15v-3a3 3 0 0 1 6 0v3" fill="none" stroke="#000" stroke-width="2"/></svg>',
+    img: '<svg width="28" height="32" viewBox="0 0 28 32"><path d="M1 1h18l8 8v22H1z" fill="#fff" stroke="#000" stroke-width="2"/><path d="M19 1v8h8" fill="#c0c0c0" stroke="#000" stroke-width="2"/><rect x="4" y="12" width="20" height="15" fill="#808080"/><path d="M4 27l6-8 4 5 3-3 7 6z"/><circle cx="19" cy="16" r="2" fill="#fff"/></svg>'
   };
-  var openDirs = {};
+  var cur = null, hist = [], openDirs = {};
 
   function folderPath(id) {
     var parts = [], d = M.dirs[id];
@@ -220,92 +341,96 @@
     return parts.join("\\") + "\\";
   }
 
-  function renderTree(cur) {
+  function renderTree() {
     var t = $("tree"); t.innerHTML = "";
     (function walk(id, depth) {
       var d = M.dirs[id], row = document.createElement("div");
-      row.textContent = (d.locked && !openDirs[id] ? "▪ " : "▫ ") + d.name;
-      row.style.paddingLeft = (4 + depth * 12) + "px";
+      var icon = id === M.root ? "i-pc" : (d.locked && !openDirs[id] ? "i-lock16" : (id === cur ? "i-dir16o" : "i-dir16"));
+      row.innerHTML = '<svg width="16" height="14"><use href="#' + icon + '"/></svg><span></span>';
+      row.querySelector("span").textContent = id === M.root ? "Мой компьютер (C:)" : d.name;
+      row.style.marginLeft = (depth * 16) + "px";
       if (id === cur) row.className = "sel";
-      row.onclick = function () { openFolder(id); };
+      row.onclick = function () { go(id); };
       t.appendChild(row);
       d.items.forEach(function (it) { if (M.dirs[it]) walk(it, depth + 1); });
     })(M.root, 0);
   }
 
-  function openFolder(id) {
+  function go(id, fromBack) {
     var d = M.dirs[id];
     if (d.locked && !openDirs[id]) return askPassword(id);
+    if (cur && cur !== id && !fromBack) hist.push(cur);
+    cur = id;
     $("path").textContent = folderPath(id);
-    $("title").textContent = "Проводник - " + d.name;
-    renderTree(id);
+    $("title").textContent = id === M.root ? "Мой компьютер" : d.name;
+    $("tExName").textContent = $("title").textContent;
+    $("back").disabled = !hist.length;
+    $("up").disabled = !d.parent;
+    renderTree();
     var box = $("files"), n = 0, bytes = 0;
     box.innerHTML = "";
-    if (d.parent) addIcon(box, "dir", "..", function () { openFolder(d.parent); });
+    if (d.parent) addIcon(box, "up", "..", function () { go(d.parent); });
     d.items.forEach(function (it) {
-      if (M.dirs[it]) { n++; addIcon(box, M.dirs[it].locked && !openDirs[it] ? "lock" : "dir", M.dirs[it].name, function () { openFolder(it); }); return; }
+      if (M.dirs[it]) { n++; addIcon(box, M.dirs[it].locked && !openDirs[it] ? "lock" : "dir", M.dirs[it].name, function () { go(it); }); return; }
       var f = M.files[it];
       if (f.hidden && !allSeen()) return;
       n++; bytes += f.size || 0;
       var el = addIcon(box, f.kind, f.name, function () { openFile(it); });
       if (f.hidden) el.className += " new";
     });
-    $("count").textContent = "Объектов: " + n;
-    $("size").textContent = bytes ? Math.round(bytes / 1024) + " КБ" : "";
+    status(n, bytes);
   }
 
+  function status(n, bytes, sel) {
+    $("count").textContent = sel || ("Объектов: " + n);
+    $("size").textContent = bytes ? (bytes / 1024).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " КБ" : "";
+  }
+
+  $("back").onclick = function () { if (hist.length) go(hist.pop(), true); };
+  $("up").onclick = function () { var p = M.dirs[cur].parent; if (p) go(p); };
+
+  // одиночный клик выделяет, двойной открывает; на сенсорных экранах открывает сразу
+  var touch = matchMedia("(pointer: coarse)").matches;
   function addIcon(box, kind, name, fn) {
     var el = document.createElement("div");
     el.className = "f";
     el.innerHTML = ICONS[kind] + "<span></span>";
     el.querySelector("span").textContent = name;
-    el.onclick = fn;
+    el.onclick = function (e) {
+      e.stopPropagation();
+      if (touch) return fn();
+      box.querySelectorAll(".f.sel").forEach(function (x) { x.classList.remove("sel"); });
+      el.classList.add("sel");
+    };
+    el.ondblclick = fn;
     box.appendChild(el);
     return el;
   }
+  $("files").onclick = function () { $("files").querySelectorAll(".f.sel").forEach(function (x) { x.classList.remove("sel"); }); };
 
   function askPassword(id) {
     var d = M.dirs[id];
-    $("dmsg").textContent = "Папка «" + d.name + "» защищена паролем.";
+    $("dmsg").textContent = "Папка «" + d.name + "» защищена паролем. Введите пароль, чтобы открыть её.";
     $("derr").textContent = ""; $("dp").value = "";
-    $("dlg").style.display = "flex";
+    $("dlg").style.display = "flex"; $("shade").style.display = "block";
+    $("ex").classList.add("idle");
     $("dp").focus();
-    $("df").onsubmit = function (e) {
+    $("dlg").onsubmit = function (e) {
       e.preventDefault();
-      var v = $("dp").value.trim().toLowerCase();
-      sha(v).then(function (h) {
-        if (d.locked.indexOf(h) >= 0) {
-          openDirs[id] = true; $("dlg").style.display = "none"; openFolder(id);
-        } else {
-          $("derr").textContent = "⚠ Неверный пароль"; $("dp").value = "";
-        }
+      sha($("dp").value.trim().toLowerCase()).then(function (h) {
+        if (d.locked.indexOf(h) >= 0) { openDirs[id] = true; closeDlg(); go(id); }
+        else { $("derr").textContent = "⚠ Неверный пароль"; $("dp").value = ""; $("dp").focus(); }
       });
     };
   }
-  $("dx").onclick = function () { $("dlg").style.display = "none"; };
+  function closeDlg() { $("dlg").style.display = "none"; $("shade").style.display = "none"; $("ex").classList.remove("idle"); }
+  $("dx").onclick = closeDlg; $("dc").onclick = closeDlg;
 
   function sha(s) {
     return crypto.subtle.digest("SHA-256", new TextEncoder().encode(SALT + s)).then(function (b) {
       return Array.prototype.map.call(new Uint8Array(b), function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
     });
   }
-
-  /* ---------- записка ---------- */
-
-  function openNote(f) {
-    var s = $("sheet"); s.innerHTML = "";
-    f.lines.forEach(function (l) {
-      var p = document.createElement("p");
-      p.setAttribute("style", l.style);
-      if (l.morse) { p.className = "m"; p.innerHTML = l.text.split("\n").map(esc).join("<br>"); }
-      else p.textContent = l.text;
-      if (l.late && !allSeen()) return;
-      s.appendChild(p);
-    });
-    $("note").style.display = "block";
-    $("note").scrollTop = 0;
-  }
-  function esc(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
 
   /* ---------- просмотр фото ---------- */
 
@@ -343,11 +468,10 @@
 
   function openFile(id) {
     var f = M.files[id];
-    if (f.kind === "txt") return openNote(f);
     seen(id);
     closeAll();
-    var ph = $("ph"), cap = $("cap"), typed = false;
-    ph.className = "ph"; ph.innerHTML = ""; cap.textContent = "";
+    var ph = $("ph"), cap = $("cap");
+    ph.className = "ph"; ph.innerHTML = ""; ph.onclick = null; cap.textContent = "";
     $("view").style.display = "flex";
     if (f.comment) ph.appendChild(document.createComment(f.comment));
 
@@ -370,7 +494,6 @@
       settle();
       if (f.sound) play(f.sound);
       effect(ph, f.effect, f.bright);
-      if (f.capMode === "click" && !typed) { typed = true; later(function () { typeCap(f.caption, cap); }, 900); }
     }
 
     if (f.zone) {
@@ -381,7 +504,6 @@
     } else {
       ph.onclick = hit;
     }
-    ph.style.cursor = f.zone ? "" : "default";
 
     (f.spots || []).forEach(function (s) {
       var el = document.createElement("div");
@@ -396,7 +518,8 @@
       ph.appendChild(el);
     });
 
-    if (f.capMode === "auto") later(function () { typeCap(f.caption, cap); }, 6500);
+    // подпись появляется сама, когда фото проявилось
+    later(function () { typeCap(f.caption, cap); }, 6500);
   }
 
   function setRect(el, r) {
@@ -404,6 +527,7 @@
     el.style.width = r[2] + "%"; el.style.height = r[3] + "%";
   }
 
+  var tbTimers = [];
   function showTabu(t) {
     snd.pause();
     var tb = $("tb"), im = tb.querySelector("img"), p = tb.querySelector("p");
@@ -421,21 +545,17 @@
   function closeAll() {
     timers.forEach(clearTimeout); timers = [];
     snd.pause();
-    ["view", "note", "tb"].forEach(function (id) { $(id).style.display = "none"; });
+    ["view", "tb"].forEach(function (id) { $(id).style.display = "none"; });
   }
 
   document.querySelectorAll("[data-close]").forEach(function (b) {
-    b.onclick = function () { closeAll(); if (M) openFolder(currentDir()); };
+    b.onclick = function () { closeAll(); if (M) go(cur, true); };
   });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && M) { closeAll(); $("dlg").style.display = "none"; openFolder(currentDir()); }
+    if (e.key !== "Escape" || !M) return;
+    if ($("dlg").style.display !== "none") return closeDlg();
+    closeAll(); go(cur, true);
   });
-
-  function currentDir() {
-    var p = $("path").textContent;
-    for (var id in M.dirs) if (folderPath(id) === p) return id;
-    return M.root;
-  }
 </script>
 </body>
 </html>
