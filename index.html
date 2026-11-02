@@ -64,6 +64,24 @@
   @keyframes pulse { 50% { opacity: .55; } }
   .fade { opacity: 0; animation: show 2.5s ease forwards; }
   @keyframes show { to { opacity: 1; } }
+  /* реклама в антракте */
+  .adbtn { display: block; margin: clamp(18px, 3vw, 26px) auto 0; background: none; border: 1px solid rgba(255,255,255,.4); color: #f2f2f2;
+           font: 500 clamp(13px, 2.2vw, 16px) "Cormorant SC", serif; letter-spacing: .3em; padding: 8px 16px 8px calc(16px + .3em); cursor: pointer; }
+  .adbtn:hover, .adbtn:focus-visible { background: #f2f2f2; color: #000; outline: none; }
+  #adv { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.92); display: none; align-items: center; justify-content: center;
+         padding: 16px; box-sizing: border-box; }
+  #adv.on { display: flex; }
+  .tv { position: relative; width: min(560px, 100%); padding: 16px 16px 36px; background: linear-gradient(#3a3a3a, #161616); border-radius: 20px;
+        box-shadow: 0 0 0 1px #555, 0 30px 80px #000; box-sizing: border-box; }
+  .tv .scr { aspect-ratio: 4 / 3; background: #000; border-radius: 16px / 20px; overflow: hidden; box-shadow: inset 0 0 30px #000; }
+  .tv video { display: block; width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+  .tv .lbl { position: absolute; left: 22px; bottom: 11px; font: 500 11px "Cormorant SC", serif; letter-spacing: .3em; color: #888; }
+  .tv .knobs { position: absolute; right: 20px; bottom: 10px; display: flex; gap: 8px; }
+  .tv .knobs i { width: 13px; height: 13px; border-radius: 50%; background: #666; box-shadow: inset -2px -2px 3px #222; }
+  .tv .x { position: absolute; top: -40px; right: 0; background: none; border: 0; color: #aaa; font: 500 15px "Cormorant SC", serif; letter-spacing: .25em; cursor: pointer; }
+  .tv .x:hover { color: #fff; }
+  .tv .bar { position: absolute; left: 118px; right: 74px; bottom: 15px; height: 3px; background: #333; }
+  .tv .bar i { display: block; height: 100%; width: 0; background: #bbb; }
 </style>
 </head>
 <body>
@@ -77,6 +95,15 @@
   <div class="orn fade">✦</div>
   <h1><span class="a">ДАМЫ И ГОСПОДА,</span><span class="b">ОБЪЯВЛЯЕТСЯ АНТРАКТ!</span></h1>
   <div class="orn fade" id="end">✦ ✦ ✦</div>
+  <button class="adbtn fade" id="adb">во время антракта · реклама</button>
+</div>
+<div id="adv">
+  <div class="tv">
+    <button class="x" id="adx">закрыть ✕</button>
+    <div class="scr"><video id="adv-v" src="reklama.mp4" playsinline preload="none"></video></div>
+    <div class="bar"><i id="adbar"></i></div>
+    <span class="lbl">ЭЛЕКТРОН</span><span class="knobs"><i></i><i></i></span>
+  </div>
 </div>
 <div class="flicker"></div>
 <canvas id="g"></canvas>
@@ -101,6 +128,18 @@
     d += 500;
   });
   document.getElementById("end").style.animationDelay = d + "ms";
+
+  // реклама в антракте
+  var adv = document.getElementById("adv"), v = document.getElementById("adv-v");
+  document.getElementById("adb").style.animationDelay = (d + 900) + "ms";
+  document.getElementById("adb").onclick = function () { adv.className = "on"; v.currentTime = 0; v.play().catch(function () {}); };
+  function closeAd() { v.pause(); adv.className = ""; }
+  document.getElementById("adx").onclick = closeAd;
+  adv.onclick = function (e) { if (e.target === adv) closeAd(); };
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeAd(); });
+  v.onclick = function () { if (v.paused) v.play(); else v.pause(); };
+  v.ontimeupdate = function () { document.getElementById("adbar").style.width = (v.duration ? v.currentTime / v.duration * 100 : 0) + "%"; };
+  v.onended = function () { setTimeout(closeAd, 800); };
 
   // зерно старой плёнки
   var c = document.getElementById("g"), x = c.getContext("2d");
