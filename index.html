@@ -118,6 +118,12 @@
       document.getElementById("lbl").textContent = "антракт окончен";
       document.querySelector("h1 .b").textContent = "ЗАНАВЕС ПОДНИМАЕТСЯ";
       document.querySelector("h1 .b").style.letterSpacing = ".08em";
+      // как только на сайте появится второе отделение — открыть его
+      setInterval(function () {
+        fetch("./?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (h) {
+          if (h.indexOf("<title>АНТРАКТ</title>") < 0) location.reload();
+        }).catch(function () {});
+      }, 10000);
       return;
     }
     setTimeout(tick, 1000 - Date.now() % 1000);
