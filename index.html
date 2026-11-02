@@ -1,844 +1,122 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>&nbsp;</title>
+<title>АНТРАКТ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@500;700&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; }
   body {
-    background: #000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='1' height='1' fill='%23161616'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23161616'/%3E%3C/svg%3E");
-    font: 11px Tahoma, "MS Sans Serif", Geneva, Arial, sans-serif; color: #000;
-    -webkit-font-smoothing: none; font-smooth: never;
-    overflow: hidden; user-select: none; -webkit-user-select: none;
+    background: #000; color: #f2f2f2; overflow: hidden;
+    font-family: "Cormorant SC", "Times New Roman", serif;
+    display: flex; align-items: center; justify-content: center;
+    user-select: none; -webkit-user-select: none;
   }
-  /* лёгкий кинескоп поверх всего */
-  body::after {
-    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 100;
-    background: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px),
-                radial-gradient(ellipse at center, transparent 75%, rgba(0,0,0,.3) 100%);
+  /* луч прожектора */
+  .spot {
+    position: fixed; inset: -20%;
+    background: radial-gradient(ellipse 38% 44% at 50% 50%, rgba(255,255,255,.10), rgba(255,255,255,.03) 55%, transparent 75%);
+    animation: breathe 7s ease-in-out infinite;
   }
+  @keyframes breathe { 50% { opacity: .7; transform: scale(1.03); } }
 
-  /* ---- рамки в духе Windows 95 ---- */
-  .out { background: #c0c0c0; box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff; }
-  .in  { background: #fff; box-shadow: inset -1px -1px #fff, inset 1px 1px #808080, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a; }
-  .sunk { box-shadow: inset -1px -1px #fff, inset 1px 1px #808080; }
+  /* зерно плёнки и мерцание */
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; opacity: .06; pointer-events: none; mix-blend-mode: screen; }
+  .flicker { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; animation: flick 5.3s steps(1) infinite; }
+  @keyframes flick { 0% { opacity: 0 } 61% { opacity: .025 } 62% { opacity: 0 } 63% { opacity: .04 } 64%, 100% { opacity: 0 } }
+  .scratch { position: fixed; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,.18); opacity: 0; pointer-events: none; }
 
-  .win { position: absolute; padding: 3px; display: flex; flex-direction: column; }
-  .bar {
-    height: 18px; flex: none; display: flex; align-items: center; gap: 3px; padding: 0 2px 0 3px;
-    background: linear-gradient(90deg, #000, #6a6a6a); color: #fff; font-weight: bold;
+  .card {
+    position: relative; text-align: center;
+    width: min(880px, calc(100vw - 32px));
+    padding: clamp(36px, 7vw, 72px) clamp(16px, 5vw, 64px);
+    border: 1px solid rgba(255,255,255,.7);
+    outline: 1px solid rgba(255,255,255,.35); outline-offset: 7px;
+    box-sizing: border-box;
+    animation: sway 9s ease-in-out infinite;
   }
-  .win.idle .bar { background: linear-gradient(90deg, #7b7b7b, #b5b5b5); color: #d4d4d4; }
-  .bar .ttl { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .bar svg { flex: none; }
-  .tbtn {
-    width: 16px; height: 14px; padding: 0; flex: none; border: 0; cursor: pointer; position: relative;
-    background: #c0c0c0; box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
-  }
-  .tbtn:active { box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080; }
-  .tbtn svg { position: absolute; left: 3px; top: 2px; }
-  .tbtn.close { margin-left: 2px; }
+  @keyframes sway { 50% { transform: translateY(-2px); } }
+  .corner { position: absolute; width: 34px; height: 34px; }
+  .corner svg { display: block; width: 100%; height: 100%; }
+  .tl { top: -12px; left: -12px; } .tr { top: -12px; right: -12px; transform: scaleX(-1); }
+  .bl { bottom: -12px; left: -12px; transform: scaleY(-1); } .br { bottom: -12px; right: -12px; transform: scale(-1); }
 
-  .btn {
-    min-width: 75px; height: 23px; padding: 0 12px; border: 0; cursor: pointer; font: inherit; color: #000;
-    background: #c0c0c0; box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
-  }
-  .btn.def { outline: 1px solid #000; outline-offset: -1px; }
-  .btn:focus-visible { outline: 1px dotted #000; outline-offset: -5px; }
-  .btn:active { box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080; }
-  .btn:disabled { color: #808080; text-shadow: 1px 1px #fff; }
-  input {
-    width: 100%; height: 21px; border: 0; padding: 3px 4px; font: inherit; color: #000; outline: none;
-    background: #fff; box-shadow: inset -1px -1px #fff, inset 1px 1px #808080, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
-    user-select: text; -webkit-user-select: text;
-  }
-  u { text-decoration: underline; }
+  .orn { display: flex; align-items: center; justify-content: center; gap: 14px; color: rgba(255,255,255,.75); font-size: 14px; letter-spacing: .5em; }
+  .orn::before, .orn::after { content: ""; height: 1px; width: min(120px, 18vw); background: linear-gradient(90deg, transparent, rgba(255,255,255,.7)); }
+  .orn::after { transform: scaleX(-1); }
 
-  /* ---- диалоги ---- */
-  .dialog { left: 50%; top: 42%; transform: translate(-50%, -50%); width: min(380px, calc(100vw - 32px)); z-index: 30; }
-  .dialog .body { display: flex; gap: 14px; padding: 14px 12px 12px; }
-  .dialog .body > svg { flex: none; }
-  .dialog .fields { flex: 1; }
-  .dialog p { margin: 0 0 12px; line-height: 1.4; }
-  .row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-  .row label { width: 98px; flex: none; }
-  .btns { display: flex; flex-direction: column; gap: 6px; }
-  .dialog .body.wide { flex-wrap: wrap; }
-  .msg { min-height: 14px; margin-top: 4px; font-weight: bold; }
-  #shade { position: fixed; inset: 0 0 28px; z-index: 25; display: none; }
-  @media (max-width: 420px) {
-    .dialog .body > svg { display: none; }
-    .row label { width: 84px; }
-  }
+  h1 { margin: clamp(22px, 4vw, 36px) 0; font-weight: 500; line-height: 1.15; }
+  h1 .a { display: block; font-size: clamp(22px, 4.6vw, 40px); letter-spacing: .32em; margin-right: -.32em; }
+  h1 .b { display: block; margin-top: .35em; font-weight: 700; font-size: clamp(26px, 5.4vw, 56px); letter-spacing: .12em; margin-right: -.12em;
+          text-shadow: 0 0 18px rgba(255,255,255,.25); }
+  .w { display: inline-block; white-space: nowrap; }
+  .ch { opacity: 0; display: inline-block; filter: blur(6px); animation: in 1.1s ease-out forwards; }
+  @keyframes in { to { opacity: 1; filter: blur(0); } }
 
-  /* ---- проводник ---- */
-  #ex { display: none; left: 50%; top: calc(50% - 14px); transform: translate(-50%, -50%); width: min(720px, calc(100vw - 24px)); height: min(470px, calc(100vh - 64px)); z-index: 10; }
-  .menu { display: flex; gap: 0; padding: 2px 0; flex: none; }
-  .menu span { padding: 2px 6px; cursor: default; }
-  .menu span:hover { box-shadow: inset -1px -1px #808080, inset 1px 1px #fff; }
-  .tools { display: flex; align-items: center; gap: 2px; padding: 2px 4px; flex: none; border-top: 1px solid #808080; box-shadow: 0 -1px #fff inset; }
-  .tool { display: flex; align-items: center; gap: 4px; height: 24px; padding: 0 6px; border: 0; background: none; font: inherit; color: #000; cursor: pointer; }
-  .tool:hover:not(:disabled) { box-shadow: inset -1px -1px #808080, inset 1px 1px #fff; }
-  .tool:active:not(:disabled) { box-shadow: inset -1px -1px #fff, inset 1px 1px #808080; }
-  .tool:disabled { color: #808080; cursor: default; }
-  .tool:disabled svg { opacity: .45; }
-  .sep { width: 2px; height: 20px; margin: 0 3px; box-shadow: inset 1px 0 #808080, inset -1px 0 #fff; }
-  .addr { display: flex; align-items: center; gap: 6px; padding: 3px 4px; flex: none; border-top: 1px solid #808080; box-shadow: 0 -1px #fff inset; }
-  .addr .in { flex: 1; height: 21px; display: flex; align-items: center; gap: 4px; padding: 0 4px; white-space: nowrap; overflow: hidden; }
-  .main { flex: 1; display: flex; gap: 3px; min-height: 0; margin-top: 2px; }
-  .tree { width: 172px; flex: none; padding: 4px 2px; overflow: auto; }
-  .tree div { display: flex; align-items: center; gap: 4px; padding: 1px 3px; margin: 1px 0; cursor: pointer; white-space: nowrap; width: max-content; }
-  .tree div.sel span { background: #000; color: #fff; outline: 1px dotted #808080; }
-  .files { flex: 1; padding: 8px; overflow: auto; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px 2px; }
-  .f { width: 92px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 2px; cursor: default; }
-  .f span { padding: 1px 2px; text-align: center; white-space: nowrap; line-height: 1.25; }
-  .f.sel svg { filter: invert(1) brightness(.55); }
-  .f.sel span { background: #000; color: #fff; outline: 1px dotted #c0c0c0; }
-  .f.new span { animation: bl 1s steps(1) infinite; }
-  @keyframes bl { 50% { visibility: hidden; } }
-  .status { display: flex; gap: 2px; margin-top: 2px; flex: none; }
-  .status div { height: 18px; padding: 2px 4px; white-space: nowrap; overflow: hidden; }
-  .status div:first-child { flex: 1; }
-  .status div:last-child { width: 120px; }
-  @media (max-width: 600px) {
-    .tree, .menu { display: none; }
-    #ex { top: 8px; transform: translateX(-50%); height: calc(100vh - 44px); }
-    .tool b { display: none; }
-  }
-
-  /* ---- панель задач ---- */
-  #task { position: fixed; left: 0; right: 0; bottom: 0; height: 28px; z-index: 40; display: flex; align-items: center; gap: 4px; padding: 2px; box-shadow: inset 0 1px #dfdfdf, inset 0 2px #fff; }
-  #start { display: flex; align-items: center; gap: 4px; font-weight: bold; min-width: 0; padding: 0 6px; }
-  #tasks { flex: 1; display: flex; gap: 3px; min-width: 0; }
-  .task { max-width: 160px; flex: 1; height: 22px; display: none; align-items: center; gap: 4px; padding: 0 6px; overflow: hidden; white-space: nowrap; font-weight: bold;
-    box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080;
-    background: repeating-conic-gradient(#c0c0c0 0 25%, #fff 0 50%) 0 0 / 2px 2px; }
-  #tray { height: 22px; white-space: pre; display: flex; align-items: center; gap: 6px; padding: 0 8px; }
-
-  /* ---- просмотр фото ---- */
-  #view { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px 40px; z-index: 50; overflow-y: auto; user-select: text; -webkit-user-select: text; }
-  .vclose { position: fixed; top: 10px; right: 14px; color: #555; font: 14px "Courier New", monospace; cursor: pointer; z-index: 52; background: none; border: 0; }
-  .vclose:hover { color: #aaa; }
-  .ph { position: relative; width: 100%; max-width: 900px; }
-  .ph > img { display: block; width: 100%; height: auto; opacity: 0; animation: fin 6s ease-in .5s forwards; }
-  .ph.flash > img { animation: none; opacity: 1; filter: brightness(var(--b, 2.4)) contrast(1.4); transform: translate(var(--x, 3px), var(--y, -2px)) scale(1.03); }
-  .ph.dim > img { filter: brightness(.35); transition: filter .6s; }
-  .ph .hot { position: absolute; }
-  .ph .hidden { position: absolute; margin: 0; color: transparent; font: 15px Georgia, serif; letter-spacing: 3px; transform: rotate(90deg); transform-origin: left top; white-space: nowrap; }
-  #view ::selection { background: #fff; color: #000; }
-  #cap { color: #bbb; font: 16px "Courier New", monospace; letter-spacing: 2px; margin: 28px 0 0; min-height: 1.4em; text-align: center; }
-  @keyframes fin { to { opacity: 1; } }
-
-
-  /* ---- магнитофон ---- */
-  #deck { display: none; left: 50%; top: calc(50% - 14px); transform: translate(-50%, -50%); width: min(380px, calc(100vw - 24px)); z-index: 35; }
-  .lcd { margin-top: 3px; background: #000; color: #d8d8d8; font: 12px "Courier New", monospace; padding: 8px 10px; box-shadow: inset 1px 1px #808080, inset -1px -1px #fff; }
-  .lcd .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-  .lcd .time { font: bold 22px "Courier New", monospace; letter-spacing: 1px; }
-  .lcd .marq { overflow: hidden; white-space: nowrap; flex: 1; text-align: right; }
-  .lcd .marq span { display: inline-block; }
-  .lcd .marq.run span { padding-left: 100%; animation: mq 9s linear infinite; }
-  @keyframes mq { to { transform: translateX(-100%); } }
-  .lcd canvas { display: block; width: 100%; height: 34px; margin-top: 6px; }
-  .cass { margin: 6px 0 4px; padding: 6px; background: #808080; box-shadow: inset 1px 1px #404040, inset -1px -1px #dfdfdf; }
-  .cass svg { display: block; width: 100%; height: auto; }
-  .reel { transform-box: fill-box; transform-origin: center; }
-  #deck.run .reel { animation: spin 1.6s linear infinite; }
-  @keyframes spin { to { transform: rotate(-360deg); } }
-  .seek { height: 12px; margin: 6px 0; cursor: pointer; position: relative; background: #fff; box-shadow: inset 1px 1px #808080, inset -1px -1px #fff, inset 2px 2px #0a0a0a; }
-  .seek div { position: absolute; left: 2px; top: 2px; bottom: 2px; width: 0; background: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px); }
-  .ctrl { display: flex; gap: 3px; align-items: center; }
-  .ctrl .btn { min-width: 0; width: 38px; padding: 0; display: flex; align-items: center; justify-content: center; }
-  .ctrl .btn.on { box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080; background: repeating-conic-gradient(#c0c0c0 0 25%, #fff 0 50%) 0 0 / 2px 2px; }
-  /* ---- видеоплеер ---- */
-  #tv { display: none; left: 50%; top: calc(50% - 14px); transform: translate(-50%, -50%); width: min(520px, calc(100vw - 24px)); z-index: 36; }
-  #tv .scr { margin-top: 3px; background: #000; box-shadow: inset 1px 1px #808080, inset -1px -1px #fff, inset 2px 2px #0a0a0a; padding: 2px; position: relative; }
-  #tv video { display: block; width: 100%; aspect-ratio: 4 / 3; background: #000; filter: grayscale(1) contrast(1.15); cursor: pointer; }
-  #tv .tm { margin-left: 6px; font: 11px Tahoma, sans-serif; white-space: nowrap; }
-  .vol { flex: 1; display: flex; align-items: center; gap: 4px; margin-left: 6px; }
-  .vol input { height: 16px; padding: 0; box-shadow: none; background: none; accent-color: #000; }
-
-  /* он появляется, когда долго не трогать мышь */
-  #ghost { position: fixed; bottom: 28px; height: min(78vh, 700px); z-index: 5; pointer-events: none; opacity: 0;
-    mix-blend-mode: screen; transition: opacity 1.4s ease-in; }
-  #ghost.on { opacity: 1; }
-  /* если на столе нет места — стоит прямо перед окном, края растворяются */
-  #ghost.front { z-index: 45; mix-blend-mode: normal;
-    -webkit-mask-image: radial-gradient(ellipse 50% 50% at center, #000 55%, transparent 100%);
-            mask-image: radial-gradient(ellipse 50% 50% at center, #000 55%, transparent 100%); }
-  #ghost.off { transition: opacity .12s linear; }
-  #tb { position: fixed; inset: 0; background: rgba(0,0,0,.92); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 60; }
-  #tb img { width: min(320px, 70vw); animation: rise 2.5s ease-out forwards; }
-  #tb p { color: #bbb; font: 16px "Courier New", monospace; letter-spacing: 2px; margin-top: 24px; min-height: 1.4em; }
-  @keyframes rise { from { opacity: 0; transform: scale(.4) rotate(-200deg); } to { opacity: 1; transform: none; } }
+  .fade { opacity: 0; animation: show 2.5s ease forwards; }
+  @keyframes show { to { opacity: 1; } }
 </style>
 </head>
 <body>
+<div class="spot"></div>
+<div class="card">
+  <div class="corner tl"><svg viewBox="0 0 34 34"><path d="M1 33V12C1 6 6 1 12 1h21M7 33V15c0-4 4-8 8-8h18" fill="none" stroke="#fff" stroke-opacity=".8"/><circle cx="12" cy="12" r="2" fill="#fff"/></svg></div>
+  <div class="corner tr"><svg viewBox="0 0 34 34"><path d="M1 33V12C1 6 6 1 12 1h21M7 33V15c0-4 4-8 8-8h18" fill="none" stroke="#fff" stroke-opacity=".8"/><circle cx="12" cy="12" r="2" fill="#fff"/></svg></div>
+  <div class="corner bl"><svg viewBox="0 0 34 34"><path d="M1 33V12C1 6 6 1 12 1h21M7 33V15c0-4 4-8 8-8h18" fill="none" stroke="#fff" stroke-opacity=".8"/><circle cx="12" cy="12" r="2" fill="#fff"/></svg></div>
+  <div class="corner br"><svg viewBox="0 0 34 34"><path d="M1 33V12C1 6 6 1 12 1h21M7 33V15c0-4 4-8 8-8h18" fill="none" stroke="#fff" stroke-opacity=".8"/><circle cx="12" cy="12" r="2" fill="#fff"/></svg></div>
 
-<svg width="0" height="0" style="position:absolute">
-  <symbol id="i-x" viewBox="0 0 8 7"><path d="M0 0h2v1h1v1h2V1h1V0h2v1H7v1H6v1H5v1h1v1h1v1h1v1H6V6H5V5H3v1H2v1H0V6h1V5h1V4h1V3H2V2H1V1H0z"/></symbol>
-  <symbol id="i-min" viewBox="0 0 8 7"><path d="M1 5h6v2H1z"/></symbol>
-  <symbol id="i-max" viewBox="0 0 9 9"><path d="M0 0h9v9H0zM1 2v6h7V2z"/></symbol>
-  <symbol id="i-key" viewBox="0 0 32 32"><circle cx="10" cy="16" r="7" fill="#fff" stroke="#000" stroke-width="2"/><circle cx="8" cy="16" r="2"/><path d="M17 15h13v3h-2v4h-3v-4h-2v3h-3v-3h-3z"/></symbol>
-  <symbol id="i-lock" viewBox="0 0 32 32"><rect x="6" y="14" width="20" height="15" fill="#fff" stroke="#000" stroke-width="2"/><path d="M10 14V9a6 6 0 0 1 12 0v5" fill="none" stroke="#000" stroke-width="3"/><rect x="15" y="19" width="2" height="5"/></symbol>
-  <symbol id="i-pc" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="10" fill="#fff" stroke="#000"/><rect x="3" y="3" width="10" height="6"/><path d="M5 12h6v1h2v2H3v-2h2z"/></symbol>
-  <symbol id="i-dir16" viewBox="0 0 16 14"><path d="M.5 2.5h6l1 1.5h8v9.5H.5z" fill="#fff" stroke="#000"/><path d="M.5 5.5h15" stroke="#000"/></symbol>
-  <symbol id="i-dir16o" viewBox="0 0 16 14"><path d="M.5 2.5h6l1 1.5h6v2" fill="#fff" stroke="#000"/><path d="M.5 13.5V2.5M.5 13.5h13l2-7H3z" fill="#c0c0c0" stroke="#000"/></symbol>
-  <symbol id="i-lock16" viewBox="0 0 16 14"><path d="M.5 2.5h6l1 1.5h8v9.5H.5z" fill="#c0c0c0" stroke="#000"/><rect x="6" y="8" width="5" height="4"/><path d="M7 8V6.5a1.5 1.5 0 0 1 3 0V8" fill="none" stroke="#000"/></symbol>
-  <symbol id="i-up" viewBox="0 0 20 18"><path d="M.5 3.5h7l1.5 2h10.5v12H.5z" fill="#fff" stroke="#000"/><path d="M10 8l4 4h-2.5v4h-3v-4H6z"/></symbol>
-  <symbol id="i-back" viewBox="0 0 18 18"><path d="M8 3L2 9l6 6v-4h8V7H8z" fill="#fff" stroke="#000"/></symbol>
-  <symbol id="i-win" viewBox="0 0 16 14"><path d="M1 2l6-1v5.5H1zM8 1l7-1v6.5H8zM1 7.5h6V13l-6-1zM8 7.5h7V14l-7-1z" fill="#000"/><path d="M1 2l6-1v5.5H1z" fill="#fff" stroke="#000" stroke-width=".6"/><path d="M8 7.5h7V14l-7-1z" fill="#808080"/></symbol>
-  <symbol id="i-film16" viewBox="0 0 16 14"><rect x=".5" y=".5" width="15" height="13" fill="#000"/><rect x="4" y="3" width="8" height="8" fill="#fff"/><path d="M1.5 2h1M1.5 5h1M1.5 8h1M1.5 11h1M13.5 2h1M13.5 5h1M13.5 8h1M13.5 11h1" stroke="#fff"/></symbol>
-  <symbol id="i-tape16" viewBox="0 0 16 12"><rect x=".5" y=".5" width="15" height="11" rx="1" fill="#fff" stroke="#000"/><rect x="3" y="3" width="10" height="4" fill="#000"/><circle cx="5.5" cy="5" r="1.2" fill="#fff"/><circle cx="10.5" cy="5" r="1.2" fill="#fff"/><path d="M4 11.5l1-2.5h6l1 2.5" fill="none" stroke="#000"/></symbol>
-  <symbol id="i-spk" viewBox="0 0 16 14"><path d="M1 5h3l4-4v12L4 9H1z" fill="#fff" stroke="#000"/><path d="M10 4q2 3 0 6M12 2q4 5 0 10" fill="none" stroke="#000"/></symbol>
-</svg>
-
-<div id="shade"></div>
-
-<form class="win out dialog" id="login" autocomplete="off">
-  <div class="bar"><span class="ttl">Вход в архив</span><button type="button" class="tbtn close" tabindex="-1"><svg width="8" height="7"><use href="#i-x"/></svg></button></div>
-  <div class="body">
-    <svg width="40" height="40"><use href="#i-key"/></svg>
-    <div class="fields">
-      <p>Введите имя пользователя и пароль для доступа к архиву.</p>
-      <div class="row"><label for="u"><u>И</u>мя пользователя:</label><input id="u" type="text" spellcheck="false" autocapitalize="off" autocomplete="off"></div>
-      <div class="row"><label for="pw"><u>П</u>ароль:</label><input id="pw" type="password" autocomplete="off"></div>
-      <div class="msg" id="err"></div>
-    </div>
-    <div class="btns">
-      <button type="submit" class="btn def" id="ok">OK</button>
-      <button type="button" class="btn" id="cancel">Отмена</button>
-    </div>
-  </div>
-</form>
-
-<div class="win out" id="ex">
-  <div class="bar">
-    <svg width="16" height="14"><use href="#i-dir16o"/></svg>
-    <span class="ttl" id="title">Проводник</span>
-    <button class="tbtn" tabindex="-1"><svg width="8" height="7"><use href="#i-min"/></svg></button>
-    <button class="tbtn" tabindex="-1"><svg width="9" height="9" style="left:3px;top:2px"><use href="#i-max"/></svg></button>
-    <button class="tbtn close" id="logout" title="Выход"><svg width="8" height="7"><use href="#i-x"/></svg></button>
-  </div>
-  <div class="menu"><span><u>Ф</u>айл</span><span><u>П</u>равка</span><span><u>В</u>ид</span><span>П<u>е</u>реход</span><span><u>С</u>правка</span></div>
-  <div class="tools">
-    <button class="tool" id="back" disabled><svg width="18" height="18"><use href="#i-back"/></svg><b>Назад</b></button>
-    <button class="tool" id="up" disabled><svg width="20" height="18"><use href="#i-up"/></svg><b>Вверх</b></button>
-    <div class="sep"></div>
-  </div>
-  <div class="addr"><span><u>А</u>дрес</span><div class="in"><svg width="16" height="14" id="addrIcon"><use href="#i-dir16"/></svg><span id="path"></span></div></div>
-  <div class="main">
-    <div class="tree in" id="tree"></div>
-    <div class="files in" id="files"></div>
-  </div>
-  <div class="status"><div class="sunk" id="count"></div><div class="sunk" id="size"></div></div>
+  <div class="orn fade">✦</div>
+  <h1><span class="a">ДАМЫ И ГОСПОДА,</span><span class="b">ОБЪЯВЛЯЕТСЯ АНТРАКТ!</span></h1>
+  <div class="orn fade" id="end">✦ ✦ ✦</div>
 </div>
-
-<form class="win out dialog" id="dlg" autocomplete="off" style="display:none">
-  <div class="bar"><span class="ttl">Доступ ограничен</span><button type="button" class="tbtn close" id="dx"><svg width="8" height="7"><use href="#i-x"/></svg></button></div>
-  <div class="body">
-    <svg width="40" height="40"><use href="#i-lock"/></svg>
-    <div class="fields">
-      <p id="dmsg">Папка защищена паролем.</p>
-      <div class="row"><label for="dp"><u>П</u>ароль:</label><input id="dp" type="text" spellcheck="false" autocapitalize="off" autocomplete="off"></div>
-      <div class="msg" id="derr"></div>
-    </div>
-    <div class="btns">
-      <button type="submit" class="btn def">OK</button>
-      <button type="button" class="btn" id="dc">Отмена</button>
-    </div>
-  </div>
-</form>
-
-<div class="win out" id="deck">
-  <div class="bar">
-    <svg width="16" height="14"><use href="#i-tape16"/></svg>
-    <span class="ttl" id="dTitle">Магнитофон</span>
-    <button class="tbtn" tabindex="-1"><svg width="8" height="7"><use href="#i-min"/></svg></button>
-    <button class="tbtn close" id="deckX"><svg width="8" height="7"><use href="#i-x"/></svg></button>
-  </div>
-  <div class="lcd">
-    <div class="top"><span class="time" id="dTime">00:00</span><span class="marq" id="dMarq"><span id="dName"></span></span></div>
-    <canvas id="scope" width="340" height="34"></canvas>
-  </div>
-  <div class="cass">
-    <svg viewBox="0 0 220 120">
-      <rect x="2" y="2" width="216" height="116" rx="8" fill="#c0c0c0" stroke="#000" stroke-width="2"/>
-      <rect x="18" y="12" width="184" height="30" fill="#fff" stroke="#000"/>
-      <text id="dLabel" x="110" y="32" text-anchor="middle" font-family="Courier New, monospace" font-size="12"></text>
-      <rect x="40" y="50" width="140" height="44" rx="22" fill="#404040" stroke="#000"/>
-      <circle id="tapeL" cx="66" cy="72" r="20" fill="#2a2a2a"/>
-      <circle id="tapeR" cx="154" cy="72" r="12" fill="#2a2a2a"/>
-      <g class="reel"><circle cx="66" cy="72" r="10" fill="#fff" stroke="#000"/><path d="M66 63v6M66 75v6M57 72h6M69 72h6" stroke="#000" stroke-width="3"/></g>
-      <g class="reel"><circle cx="154" cy="72" r="10" fill="#fff" stroke="#000"/><path d="M154 63v6M154 75v6M145 72h6M157 72h6" stroke="#000" stroke-width="3"/></g>
-      <path d="M50 118l10-16h100l10 16" fill="#a0a0a0" stroke="#000"/>
-      <circle cx="78" cy="110" r="3"/><circle cx="142" cy="110" r="3"/>
-    </svg>
-  </div>
-  <div class="seek" id="seek"><div id="seekBar"></div></div>
-  <div class="ctrl">
-    <button class="btn" id="dPrev" title="Предыдущая"><svg width="14" height="10" viewBox="0 0 14 10"><path d="M0 0h2v10H0zM2 5l6-5v10zM8 5l6-5v10z"/></svg></button>
-    <button class="btn" id="dPlay" title="Воспроизведение"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 0l9 5-9 5z"/></svg></button>
-    <button class="btn" id="dPause" title="Пауза"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 0h3v10H1zM6 0h3v10H6z"/></svg></button>
-    <button class="btn" id="dStop" title="Стоп"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 0h10v10H0z"/></svg></button>
-    <button class="btn" id="dNext" title="Следующая"><svg width="14" height="10" viewBox="0 0 14 10"><path d="M0 0l6 5-6 5zM6 0l6 5-6 5zM12 0h2v10h-2z"/></svg></button>
-    <div class="vol"><svg width="16" height="14"><use href="#i-spk"/></svg><input type="range" id="dVol" min="0" max="100" value="80"></div>
-  </div>
-</div>
-
-<div class="win out" id="tv">
-  <div class="bar">
-    <svg width="16" height="14"><use href="#i-film16"/></svg>
-    <span class="ttl" id="vTitle">Видеоплеер</span>
-    <button class="tbtn" tabindex="-1"><svg width="8" height="7"><use href="#i-min"/></svg></button>
-    <button class="tbtn close" id="tvX"><svg width="8" height="7"><use href="#i-x"/></svg></button>
-  </div>
-  <div class="scr"><video id="vid" playsinline preload="auto"></video></div>
-  <div class="seek" id="vSeek"><div id="vSeekBar"></div></div>
-  <div class="ctrl">
-    <button class="btn" id="vPlay" title="Воспроизведение"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 0l9 5-9 5z"/></svg></button>
-    <button class="btn" id="vPause" title="Пауза"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 0h3v10H1zM6 0h3v10H6z"/></svg></button>
-    <button class="btn" id="vStop" title="Стоп"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 0h10v10H0z"/></svg></button>
-    <span class="tm" id="vTime">00:00 / 00:00</span>
-    <div class="vol"><svg width="16" height="14"><use href="#i-spk"/></svg><input type="range" id="vVol" min="0" max="100" value="80"></div>
-  </div>
-</div>
-
-<img id="ghost" alt="">
-<div id="task" class="out">
-  <button class="btn" id="start"><svg width="16" height="14"><use href="#i-win"/></svg>Пуск</button>
-  <div class="sep"></div>
-  <div id="tasks">
-    <div class="task" id="tLogin"><svg width="16" height="16"><use href="#i-key"/></svg>Вход в архив</div>
-    <div class="task" id="tTv"><svg width="16" height="14"><use href="#i-film16"/></svg>Видеоплеер</div>
-    <div class="task" id="tDeck"><svg width="16" height="14"><use href="#i-tape16"/></svg>Магнитофон</div>
-    <div class="task" id="tEx"><svg width="16" height="14"><use href="#i-dir16o"/></svg><span id="tExName">Проводник</span></div>
-  </div>
-  <div id="tray" class="sunk"><svg width="16" height="14"><use href="#i-spk"/></svg><span id="clock"></span></div>
-</div>
-
-<div id="view">
-  <button class="vclose" data-close>[ закрыть ]</button>
-  <div class="ph" id="ph"></div>
-  <p id="cap"></p>
-</div>
-
-<div id="tb"><img alt=""><p></p></div>
-
+<div class="flicker"></div>
+<canvas id="g"></canvas>
 <script>
-  // Всё содержимое зашифровано AES-GCM, ключ получается из логина и пароля (PBKDF2)
-  var SALT = "4c5RXcocxRdozvFnJYHY2w==", ITER = 300000, MANIFEST = "4VRwSYfIoTyT0cHp.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";
-  var KEY = null, M = null, cache = {};
-
-  function b64(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
-  function $(id) { return document.getElementById(id); }
-
-  function deriveKey(user, pass) {
-    var enc = new TextEncoder();
-    return crypto.subtle.importKey("raw", enc.encode(user.trim().toLowerCase() + ":" + pass), "PBKDF2", false, ["deriveKey"])
-      .then(function (base) {
-        return crypto.subtle.deriveKey({ name: "PBKDF2", salt: b64(SALT), iterations: ITER, hash: "SHA-256" },
-          base, { name: "AES-GCM", length: 256 }, true, ["decrypt"]);
-      });
-  }
-
-  function decryptText(blob) {
-    var p = blob.split(".");
-    return crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(p[0]) }, KEY, b64(p[1]))
-      .then(function (buf) { return new TextDecoder().decode(buf); });
-  }
-
-  // файлы лежат в d/*.bin: 12 байт iv, затем шифротекст
-  function media(id) {
-    if (cache[id]) return Promise.resolve(cache[id]);
-    var f = M.blobs[id];
-    return fetch("d/" + f.bin).then(function (r) { return r.arrayBuffer(); }).then(function (buf) {
-      var u = new Uint8Array(buf);
-      return crypto.subtle.decrypt({ name: "AES-GCM", iv: u.slice(0, 12) }, KEY, u.slice(12));
-    }).then(function (plain) {
-      return (cache[id] = URL.createObjectURL(new Blob([plain], { type: f.type })));
-    });
-  }
-
-  function seen(id) { try { localStorage.setItem("seen_" + id, "1"); } catch (e) {} }
-  function wasSeen(id) { try { return !!localStorage.getItem("seen_" + id); } catch (e) { return false; } }
-  function allSeen() { return M.unlock.every(wasSeen); }
-
-  /* ---------- часы и панель задач ---------- */
-
-  function tick() {
-    var d = new Date();
-    // на часах всегда 1998 год
-    $("clock").textContent = d.getHours() + ":" + ("0" + d.getMinutes()).slice(-2) + "  " +
-      ("0" + d.getDate()).slice(-2) + "." + ("0" + (d.getMonth() + 1)).slice(-2) + ".1998";
-  }
-  tick(); setInterval(tick, 10000);
-  $("tLogin").style.display = "flex";
-
-  /* ---------- он смотрит ---------- */
-
-  var IDLE = 40000, idleT = null, ghostShown = false;
-  function watchIdle() {
-    if (!M.ghost || idleT !== null) return;
-    media(M.ghost).then(function (u) { $("ghost").src = u; });
-    var poke = function () {
-      clearTimeout(idleT);
-      ghostShown = false;
-      idleT = setTimeout(showGhost, IDLE);
-    };
-    ["mousemove", "mousedown", "keydown", "touchstart", "wheel"].forEach(function (ev) {
-      document.addEventListener(ev, poke, { passive: true });
-    });
-    poke();
-  }
-  function showGhost() {
-    var g = $("ghost");
-    if (ghostShown || !g.src || $("view").style.display === "flex" || $("tb").style.display === "flex") return;
-    ghostShown = true;
-    var w = window.innerWidth, r = $("ex").getBoundingClientRect();
-    var L = r.left, R = w - r.right, side = Math.max(L, R), full = Math.min(window.innerHeight * 0.78, 700);
-    var front = side < 170, h = front ? full : Math.min(full, side * 0.95 * 1.5), gw = h * 2 / 3;
-    g.style.height = Math.round(h) + "px";
-    var x = front ? (w - gw) / 2 : (L >= R && (R < 170 || Math.random() < .5) ? (L - gw) / 2 : r.right + (R - gw) / 2);
-    g.style.left = Math.round(x) + "px";
-    g.className = front ? "front" : "";
-    void g.offsetWidth;
-    g.className = front ? "front on" : "on";
-    setTimeout(function () {
-      g.className = front ? "front off" : "off";
-      setTimeout(function () { g.className = ""; }, 200);
-    }, 2600);
-  }
-
-  /* ---------- вход ---------- */
-
-  function unlock(key, remember) {
-    KEY = key;
-    return decryptText(MANIFEST).then(function (json) {
-      M = JSON.parse(json);
-      if (remember) {
-        crypto.subtle.exportKey("raw", key).then(function (raw) {
-          try { sessionStorage.setItem("k", btoa(String.fromCharCode.apply(null, new Uint8Array(raw)))); } catch (e) {}
-        });
+  // буквы проявляются по одной, как под светом прожектора
+  var d = 600;
+  document.querySelectorAll("h1 > span").forEach(function (line, li) {
+    var words = line.textContent.split(" "); line.textContent = "";
+    words.forEach(function (w, wi) {
+      if (wi) { line.appendChild(document.createTextNode(" ")); d += li ? 85 : 55; }
+      var word = document.createElement("span");
+      word.className = "w";
+      for (var i = 0; i < w.length; i++) {
+        var s = document.createElement("span");
+        s.className = "ch"; s.textContent = w[i];
+        s.style.animationDelay = d + "ms";
+        d += li ? 85 : 55;
+        word.appendChild(s);
       }
-      $("login").style.display = "none";
-      $("tLogin").style.display = "none";
-      $("ex").style.display = "flex";
-      $("tEx").style.display = "flex";
-      go(M.root);
-      watchIdle();
-    }, function (e) { KEY = null; throw e; });
-  }
+      line.appendChild(word);
+    });
+    d += 500;
+  });
+  document.getElementById("end").style.animationDelay = d + "ms";
 
-  $("login").onsubmit = function (e) {
-    e.preventDefault();
-    var err = $("err"), ok = $("ok");
-    err.textContent = "Проверка..."; ok.disabled = true;
-    deriveKey($("u").value, $("pw").value)
-      .then(function (key) { return unlock(key, true); })
-      .then(function () { err.textContent = ""; }, function () {
-        err.textContent = "⚠ Доступ запрещён";
-        $("pw").value = ""; $("pw").focus();
-      })
-      .then(function () { ok.disabled = false; });
-  };
-  $("cancel").onclick = function () { $("u").value = ""; $("pw").value = ""; $("err").textContent = ""; };
-
-  $("logout").onclick = function () {
-    try { sessionStorage.removeItem("k"); } catch (e) {}
-    location.reload();
-  };
-
-  (function () {
-    var k = null;
-    try { k = sessionStorage.getItem("k"); } catch (e) {}
-    if (!k) { $("u").focus(); return; }
-    crypto.subtle.importKey("raw", b64(k), "AES-GCM", true, ["decrypt"])
-      .then(function (key) { return unlock(key, false); })
-      .catch(function () {});
+  // зерно старой плёнки
+  var c = document.getElementById("g"), x = c.getContext("2d");
+  c.width = 220; c.height = 140;
+  var img = x.createImageData(c.width, c.height);
+  (function grain() {
+    for (var i = 0; i < img.data.length; i += 4) {
+      var v = Math.random() * 255 | 0;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255;
+    }
+    x.putImageData(img, 0, 0);
+    setTimeout(function () { requestAnimationFrame(grain); }, 60);
   })();
 
-  /* ---------- проводник ---------- */
-
-  var ICONS = {
-    video: '<svg width="34" height="30" viewBox="0 0 34 30"><rect x="1" y="1" width="32" height="28" fill="#000"/><rect x="8" y="5" width="18" height="20" fill="#fff" stroke="#000"/><path d="M11 10l9 5-9 5z"/><path d="M3 4h2M3 9h2M3 14h2M3 19h2M3 24h2M29 4h2M29 9h2M29 14h2M29 19h2M29 24h2" stroke="#fff" stroke-width="2"/></svg>',
-    dir: '<svg width="32" height="28" viewBox="0 0 32 28"><path d="M1 4h11l3 3h16v20H1z" fill="#fff" stroke="#000" stroke-width="2"/><path d="M1 10h30" stroke="#000" stroke-width="2"/><path d="M4 13h24" stroke="#c0c0c0"/></svg>',
-    up: '<svg width="32" height="28" viewBox="0 0 32 28"><path d="M1 4h11l3 3h16v20H1z" fill="#fff" stroke="#000" stroke-width="2"/><path d="M16 11l6 6h-4v6h-4v-6h-4z"/></svg>',
-    lock: '<svg width="32" height="28" viewBox="0 0 32 28"><path d="M1 4h11l3 3h16v20H1z" fill="#c0c0c0" stroke="#000" stroke-width="2"/><rect x="11" y="15" width="10" height="9"/><path d="M13 15v-3a3 3 0 0 1 6 0v3" fill="none" stroke="#000" stroke-width="2"/></svg>',
-    tape: '<svg width="34" height="26" viewBox="0 0 34 26"><rect x="1" y="1" width="32" height="24" rx="2" fill="#fff" stroke="#000" stroke-width="2"/><rect x="5" y="4" width="24" height="7" fill="#c0c0c0" stroke="#000"/><rect x="7" y="13" width="20" height="7" rx="3.5"/><circle cx="11" cy="16.5" r="2" fill="#fff"/><circle cx="23" cy="16.5" r="2" fill="#fff"/><path d="M8 25l2-3h14l2 3" fill="none" stroke="#000" stroke-width="2"/></svg>',
-    img: '<svg width="28" height="32" viewBox="0 0 28 32"><path d="M1 1h18l8 8v22H1z" fill="#fff" stroke="#000" stroke-width="2"/><path d="M19 1v8h8" fill="#c0c0c0" stroke="#000" stroke-width="2"/><rect x="4" y="12" width="20" height="15" fill="#808080"/><path d="M4 27l6-8 4 5 3-3 7 6z"/><circle cx="19" cy="16" r="2" fill="#fff"/></svg>'
-  };
-  var cur = null, hist = [], openDirs = {};
-
-  function folderPath(id) {
-    var parts = [], d = M.dirs[id];
-    while (d) { parts.unshift(d.name); d = M.dirs[d.parent]; }
-    return parts.join("\\") + "\\";
-  }
-
-  function renderTree() {
-    var t = $("tree"); t.innerHTML = "";
-    (function walk(id, depth) {
-      var d = M.dirs[id], row = document.createElement("div");
-      var icon = id === M.root ? "i-pc" : (d.locked && !openDirs[id] ? "i-lock16" : (id === cur ? "i-dir16o" : "i-dir16"));
-      row.innerHTML = '<svg width="16" height="14"><use href="#' + icon + '"/></svg><span></span>';
-      row.querySelector("span").textContent = id === M.root ? "Мой компьютер (C:)" : d.name;
-      row.style.marginLeft = (depth * 16) + "px";
-      if (id === cur) row.className = "sel";
-      row.onclick = function () { go(id); };
-      t.appendChild(row);
-      d.items.forEach(function (it) { if (M.dirs[it]) walk(it, depth + 1); });
-    })(M.root, 0);
-  }
-
-  function go(id, fromBack) {
-    var d = M.dirs[id];
-    if (d.locked && !openDirs[id]) return askPassword(id);
-    if (cur && cur !== id && !fromBack) hist.push(cur);
-    cur = id;
-    $("path").textContent = folderPath(id);
-    $("title").textContent = id === M.root ? "Мой компьютер" : d.name;
-    $("tExName").textContent = $("title").textContent;
-    $("back").disabled = !hist.length;
-    $("up").disabled = !d.parent;
-    renderTree();
-    var box = $("files"), n = 0, bytes = 0;
-    box.innerHTML = "";
-    if (d.parent) addIcon(box, "up", "..", function () { go(d.parent); });
-    d.items.forEach(function (it) {
-      if (M.dirs[it]) { n++; addIcon(box, M.dirs[it].locked && !openDirs[it] ? "lock" : "dir", M.dirs[it].name, function () { go(it); }); return; }
-      var f = M.files[it];
-      if (f.hidden && !allSeen()) return;
-      n++; bytes += f.size || 0;
-      var el = addIcon(box, f.kind, f.name, function () { openFile(it); });
-      if (f.hidden) el.className += " new";
-    });
-    status(n, bytes);
-  }
-
-  function status(n, bytes, sel) {
-    $("count").textContent = sel || ("Объектов: " + n);
-    $("size").textContent = bytes ? (bytes / 1024).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " КБ" : "";
-  }
-
-  $("back").onclick = function () { if (hist.length) go(hist.pop(), true); };
-  $("up").onclick = function () { var p = M.dirs[cur].parent; if (p) go(p); };
-
-  // одиночный клик выделяет, двойной открывает; на сенсорных экранах открывает сразу
-  var touch = matchMedia("(pointer: coarse)").matches;
-  function addIcon(box, kind, name, fn) {
-    var el = document.createElement("div");
-    el.className = "f";
-    el.innerHTML = ICONS[kind] + "<span></span>";
-    el.querySelector("span").textContent = name;
-    el.onclick = function (e) {
-      e.stopPropagation();
-      if (touch) return fn();
-      box.querySelectorAll(".f.sel").forEach(function (x) { x.classList.remove("sel"); });
-      el.classList.add("sel");
-    };
-    el.ondblclick = fn;
-    box.appendChild(el);
-    return el;
-  }
-  $("files").onclick = function () { $("files").querySelectorAll(".f.sel").forEach(function (x) { x.classList.remove("sel"); }); };
-
-  function askPassword(id) {
-    var d = M.dirs[id];
-    $("dmsg").textContent = "Папка «" + d.name + "» защищена паролем. Введите пароль, чтобы открыть её.";
-    $("derr").textContent = ""; $("dp").value = "";
-    $("dlg").style.display = "flex"; $("shade").style.display = "block";
-    $("ex").classList.add("idle");
-    $("dp").focus();
-    $("dlg").onsubmit = function (e) {
-      e.preventDefault();
-      sha($("dp").value.trim().toLowerCase()).then(function (h) {
-        if (d.locked.indexOf(h) >= 0) { openDirs[id] = true; closeDlg(); go(id); }
-        else { $("derr").textContent = "⚠ Неверный пароль"; $("dp").value = ""; $("dp").focus(); }
-      });
-    };
-  }
-  function closeDlg() { $("dlg").style.display = "none"; $("shade").style.display = "none"; $("ex").classList.remove("idle"); }
-  $("dx").onclick = closeDlg; $("dc").onclick = closeDlg;
-
-  function sha(s) {
-    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(SALT + s)).then(function (b) {
-      return Array.prototype.map.call(new Uint8Array(b), function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
-    });
-  }
-
-  /* ---------- просмотр фото ---------- */
-
-  var snd = new Audio(), timers = [];
-  function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
-
-  function typeCap(text, el) {
-    var i = 0;
-    (function t() {
-      if (i > text.length) return;
-      el.textContent = text.slice(0, i++);
-      later(t, 90 + Math.random() * 160);
-    })();
-  }
-
-  function play(id) {
-    return media(id).then(function (url) { snd.src = url; snd.currentTime = 0; return snd.play(); }).catch(function () {});
-  }
-
-  function effect(ph, kind, b) {
-    if (kind === "dim") {
-      ph.className = "ph dim";
-      later(function () { ph.className = "ph"; }, 1800);
-      return;
-    }
-    ph.style.setProperty("--b", b || 2.4);
-    var n = 0;
-    (function shake() {
-      ph.style.setProperty("--x", (Math.random() * 14 - 7) + "px");
-      ph.style.setProperty("--y", (Math.random() * 10 - 5) + "px");
-      ph.className = n % 3 === 2 ? "ph" : "ph flash";
-      if (++n < 14) later(shake, 60); else ph.className = "ph";
-    })();
-  }
-
-  function openFile(id) {
-    var f = M.files[id];
-    if (f.kind === "tape") { closeTv(); return openTape(id); }
-    if (f.kind === "video") { tape.pause(); return openTv(id); }
-    tape.pause(); closeTv();
-    seen(id);
-    closeAll();
-    var ph = $("ph"), cap = $("cap");
-    ph.className = "ph"; ph.innerHTML = ""; ph.onclick = null; cap.textContent = "";
-    $("view").style.display = "flex";
-    if (f.comment) ph.appendChild(document.createComment(f.comment));
-
-    var img = new Image();
-    img.alt = "";
-    function settle() { img.style.animation = "none"; img.style.opacity = "1"; }
-    img.addEventListener("animationend", settle);
-    ph.appendChild(img);
-    media(f.img).then(function (url) { img.src = url; });
-    if (f.sound) media(f.sound);
-
-    if (f.hiddenText) {
-      var h = document.createElement("p");
-      h.className = "hidden"; h.textContent = f.hiddenText.text;
-      h.style.left = f.hiddenText.at[0] + "%"; h.style.top = f.hiddenText.at[1] + "%";
-      ph.appendChild(h);
-    }
-
-    function hit() {
-      settle();
-      if (f.sound) play(f.sound);
-      effect(ph, f.effect, f.bright);
-    }
-
-    if (f.zone) {
-      var z = document.createElement("div");
-      z.className = "hot"; setRect(z, f.zone);
-      z.onclick = hit;
-      ph.appendChild(z);
-    } else {
-      ph.onclick = hit;
-    }
-
-    (f.spots || []).forEach(function (s) {
-      var el = document.createElement("div");
-      el.className = "hot"; setRect(el, s.rect);
-      if (s.pointer) el.style.cursor = "pointer";
-      el.onclick = function (e) {
-        e.stopPropagation();
-        settle();
-        if (s.open) openFile(s.open);
-        if (s.tabu) showTabu(s.tabu);
-      };
-      ph.appendChild(el);
-    });
-
-    // подпись появляется сама, когда фото проявилось
-    later(function () { typeCap(f.caption, cap); }, 6500);
-  }
-
-  function setRect(el, r) {
-    el.style.left = r[0] + "%"; el.style.top = r[1] + "%";
-    el.style.width = r[2] + "%"; el.style.height = r[3] + "%";
-  }
-
-  var tbTimers = [];
-  function showTabu(t) {
-    snd.pause();
-    var tb = $("tb"), im = tb.querySelector("img"), p = tb.querySelector("p");
-    p.textContent = "";
-    media(t.gif).then(function (url) {
-      im.src = url;
-      im.style.animation = "none"; im.offsetWidth; im.style.animation = "";
-      tb.style.display = "flex";
-      play(t.sound);
-      typeCap(t.text, p);
-    });
-  }
-  $("tb").onclick = function () { $("tb").style.display = "none"; snd.pause(); };
-
-
-  /* ---------- магнитофон ---------- */
-
-  var tape = new Audio(), tapeId = null, actx = null, analyser = null, scopeData = null;
-
-  function fmt(t) { t = Math.floor(t || 0); return ("0" + Math.floor(t / 60)).slice(-2) + ":" + ("0" + t % 60).slice(-2); }
-
-  function tapesHere() {
-    return M.dirs[cur].items.filter(function (it) { return M.files[it] && M.files[it].kind === "tape"; });
-  }
-
-  function openTape(id) {
-    var f = M.files[id];
-    tapeId = id;
-    tape.pause();
-    $("deck").style.display = "flex";
-    $("tDeck").style.display = "flex";
-    $("dTitle").textContent = f.name + " - Магнитофон";
-    $("dName").textContent = "*** " + (f.title || f.name) + " ***";
-    $("dLabel").textContent = f.label || f.name;
-    $("dMarq").className = "marq";
-    $("dTime").textContent = "--:--";
-    drawTape(0);
-    media(f.sound).then(function (url) {
-      if (tapeId !== id) return;
-      tape.src = url;
-      tape.volume = $("dVol").value / 100;
-      tapePlay();
-    });
-  }
-
-  function tapePlay() {
-    if (!tape.src) return;
-    if (!actx) {
-      try {
-        actx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = actx.createAnalyser(); analyser.fftSize = 512;
-        actx.createMediaElementSource(tape).connect(analyser);
-        analyser.connect(actx.destination);
-        scopeData = new Uint8Array(analyser.fftSize);
-      } catch (e) { actx = null; }
-    }
-    if (actx && actx.state === "suspended") actx.resume();
-    tape.play().catch(function () {});
-  }
-
-  tape.addEventListener("play", function () { $("deck").classList.add("run"); $("dMarq").className = "marq run"; setBtn("dPlay"); scope(); });
-  tape.addEventListener("pause", function () { $("deck").classList.remove("run"); setBtn(tape.currentTime ? "dPause" : "dStop"); });
-  tape.addEventListener("ended", function () { $("deck").classList.remove("run"); setBtn("dStop"); });
-  tape.addEventListener("timeupdate", function () {
-    $("dTime").textContent = fmt(tape.currentTime);
-    var k = tape.duration ? tape.currentTime / tape.duration : 0;
-    $("seekBar").style.width = "calc(" + (k * 100) + "% - " + (k * 4) + "px)";
-    drawTape(k);
-  });
-
-  // плёнка перематывается с левой катушки на правую
-  function drawTape(k) {
-    $("tapeL").setAttribute("r", 22 - 10 * k);
-    $("tapeR").setAttribute("r", 12 + 10 * k);
-  }
-
-  function setBtn(id) {
-    ["dPlay", "dPause", "dStop"].forEach(function (b) { $(b).classList.toggle("on", b === id); });
-  }
-
-  function scope() {
-    var c = $("scope"), g = c.getContext("2d");
-    (function frame() {
-      g.fillStyle = "#000"; g.fillRect(0, 0, c.width, c.height);
-      g.strokeStyle = "#d8d8d8"; g.lineWidth = 1; g.beginPath();
-      if (analyser && !tape.paused) {
-        analyser.getByteTimeDomainData(scopeData);
-        for (var i = 0; i < scopeData.length; i++) {
-          var x = i / scopeData.length * c.width, y = scopeData[i] / 255 * c.height;
-          i ? g.lineTo(x, y) : g.moveTo(x, y);
-        }
-      } else { g.moveTo(0, c.height / 2); g.lineTo(c.width, c.height / 2); }
-      g.stroke();
-      if (!tape.paused) requestAnimationFrame(frame);
-    })();
-  }
-
-  $("dPlay").onclick = tapePlay;
-  $("dPause").onclick = function () { tape.pause(); };
-  $("dStop").onclick = function () { tape.pause(); tape.currentTime = 0; setBtn("dStop"); };
-  $("dVol").oninput = function () { tape.volume = this.value / 100; };
-  $("seek").onclick = function (e) {
-    if (!tape.duration) return;
-    var r = this.getBoundingClientRect();
-    tape.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * tape.duration;
-  };
-  function step(d) {
-    var list = tapesHere(), i = list.indexOf(tapeId);
-    if (i < 0 || list.length < 2) { tape.currentTime = 0; return; }
-    openTape(list[(i + d + list.length) % list.length]);
-  }
-  $("dPrev").onclick = function () { if (tape.currentTime > 3) tape.currentTime = 0; else step(-1); };
-  $("dNext").onclick = function () { step(1); };
-  function closeDeck() { tape.pause(); tapeId = null; $("deck").style.display = "none"; $("tDeck").style.display = "none"; }
-  $("deckX").onclick = closeDeck;
-
-  /* ---------- видеоплеер ---------- */
-
-  var vid = $("vid"), vidId = null;
-  function openTv(id) {
-    var f = M.files[id];
-    vidId = id;
-    $("tv").style.display = "flex";
-    $("tTv").style.display = "flex";
-    $("vTitle").textContent = f.name + " - Видеоплеер";
-    $("vTime").textContent = "загрузка...";
-    media(f.video).then(function (url) {
-      if (vidId !== id) return;
-      if (vid.src !== url) vid.src = url;
-      vid.volume = $("vVol").value / 100;
-      vid.play().catch(function () {});
-    });
-  }
-  function vSet(b) { ["vPlay", "vPause", "vStop"].forEach(function (x) { $(x).classList.toggle("on", x === b); }); }
-  vid.addEventListener("play", function () { vSet("vPlay"); });
-  vid.addEventListener("pause", function () { vSet(vid.currentTime ? "vPause" : "vStop"); });
-  vid.addEventListener("ended", function () { vSet("vStop"); });
-  vid.addEventListener("timeupdate", function () {
-    $("vTime").textContent = fmt(vid.currentTime) + " / " + fmt(vid.duration || 0);
-    var k = vid.duration ? vid.currentTime / vid.duration : 0;
-    $("vSeekBar").style.width = "calc((100% - 4px) * " + k + ")";
-  });
-  vid.onclick = function () { if (vid.paused) vid.play(); else vid.pause(); };
-  $("vPlay").onclick = function () { if (vid.src) vid.play(); };
-  $("vPause").onclick = function () { vid.pause(); };
-  $("vStop").onclick = function () { vid.pause(); vid.currentTime = 0; vSet("vStop"); };
-  $("vVol").oninput = function () { vid.volume = this.value / 100; };
-  $("vSeek").onclick = function (e) {
-    if (!vid.duration) return;
-    var r = this.getBoundingClientRect();
-    vid.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * vid.duration;
-  };
-  function closeTv() { vid.pause(); vidId = null; $("tv").style.display = "none"; $("tTv").style.display = "none"; }
-  $("tvX").onclick = closeTv;
-
-  function closeAll() {
-    timers.forEach(clearTimeout); timers = [];
-    snd.pause();
-    ["view", "tb"].forEach(function (id) { $(id).style.display = "none"; });
-  }
-
-  document.querySelectorAll("[data-close]").forEach(function (b) {
-    b.onclick = function () { closeAll(); if (M) go(cur, true); };
-  });
-  document.addEventListener("keydown", function (e) {
-    if (e.key !== "Escape" || !M) return;
-    if ($("dlg").style.display !== "none") return closeDlg();
-    if ($("tv").style.display === "flex" && $("view").style.display !== "flex") return closeTv();
-    if ($("deck").style.display === "flex" && $("view").style.display !== "flex") return closeDeck();
-    closeAll(); go(cur, true);
-  });
+  // царапины на плёнке
+  setInterval(function () {
+    if (Math.random() > .35) return;
+    var s = document.createElement("div");
+    s.className = "scratch"; s.style.left = (Math.random() * 100) + "vw";
+    document.body.appendChild(s);
+    s.animate([{ opacity: 0 }, { opacity: 1 }, { opacity: 0 }], { duration: 180 + Math.random() * 300 }).onfinish = function () { s.remove(); };
+  }, 700);
 </script>
 </body>
 </html>
