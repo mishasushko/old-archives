@@ -82,6 +82,36 @@
   .tv .x:hover { color: #fff; }
   .tv .bar { position: absolute; left: 118px; right: 74px; bottom: 15px; height: 3px; background: #333; }
   .tv .bar i { display: block; height: 100%; width: 0; background: #bbb; }
+
+  /* премьера: звонки, последние секунды, темнота */
+  .snd { display: block; margin: 12px auto 0; background: none; border: 0; color: rgba(255,255,255,.55); cursor: pointer;
+         font: 500 clamp(12px, 2vw, 14px) "Cormorant SC", serif; letter-spacing: .3em; }
+  .snd:hover { color: #fff; }
+  .snd.on { color: #fff; }
+  #bell { position: fixed; left: 0; right: 0; top: max(18px, env(safe-area-inset-top)); text-align: center; font-weight: 700; letter-spacing: .4em;
+          font-size: clamp(14px, 2.6vw, 20px); opacity: 0; pointer-events: none; text-shadow: 0 0 14px rgba(255,255,255,.5); z-index: 40; }
+  #bell.on { animation: bell 3.5s ease forwards; }
+  @keyframes bell { 10%, 70% { opacity: 1; } 100% { opacity: 0; } }
+  #big { position: fixed; inset: 0; z-index: 45; display: none; align-items: center; justify-content: center; pointer-events: none;
+         font-weight: 700; font-size: min(60vw, 70vh); line-height: 1; font-variant-numeric: lining-nums; color: #fff;
+         text-shadow: 0 0 60px rgba(255,255,255,.35); }
+  #big.on { display: flex; }
+  #big span { animation: pop 1s ease-out forwards; }
+  @keyframes pop { 0% { transform: scale(1.35); opacity: 0; filter: blur(14px); } 15% { opacity: .95; filter: blur(0); } 100% { transform: scale(.92); opacity: .15; } }
+  body.final .card { opacity: .25; transition: opacity 2s; }
+  body.shake .card { animation: shk .12s 4; }
+  @keyframes shk { 25% { transform: translate(4px, -3px); } 75% { transform: translate(-4px, 2px); } }
+  #pre { position: fixed; inset: 0; z-index: 60; background: #000; display: none; align-items: center; justify-content: center; text-align: center; cursor: none; }
+  #pre.on { display: flex; }
+  #say { position: relative; z-index: 3; font-family: "Cormorant SC", serif; font-size: clamp(22px, 4.4vw, 40px); letter-spacing: .12em; padding: 0 16px;
+         text-shadow: 0 0 18px rgba(255,255,255,.3); min-height: 1.4em; }
+  #reveal { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 1.5s; }
+  #reveal.on { opacity: 1; }
+  #reveal .k { font-size: clamp(14px, 2.6vw, 22px); letter-spacing: .5em; margin-right: -.5em; color: rgba(255,255,255,.8); }
+  #reveal .t { font-weight: 700; font-size: clamp(70px, 20vw, 220px); letter-spacing: .08em; margin-right: -.08em; line-height: 1; margin-top: .1em; }
+  #reveal .s { margin-top: 1.4em; font-size: clamp(13px, 2.2vw, 17px); letter-spacing: .35em; color: rgba(255,255,255,.6); }
+  #torch { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+  #white { position: fixed; inset: 0; z-index: 70; background: #fff; opacity: 0; pointer-events: none; transition: opacity .5s; }
 </style>
 </head>
 <body>
@@ -100,7 +130,12 @@
     <div class="num" id="cd">--:--:--</div>
   </div>
   <button class="adbtn fade" id="adb">во время антракта · реклама</button>
+  <button class="snd fade" id="snd">включить звук для премьеры</button>
 </div>
+<div id="bell"></div>
+<div id="big"></div>
+<div id="pre"><div id="reveal"><div class="k">ТРЕТЬЕ ОТДЕЛЕНИЕ</div><div class="t">ДОМ</div><div class="s" id="door">дверь открывается…</div></div><div id="torch"></div><div id="say"></div></div>
+<div id="white"></div>
 <div id="adv">
   <div class="tv">
     <button class="x" id="adx">закрыть ✕</button>
@@ -137,25 +172,89 @@
   // третье отделение: 20:00 по Москве, 3 ноября 2026
   var END = Date.UTC(2026, 10, 3, 17, 0, 0);
   function two(n) { return (n < 10 ? "0" : "") + n; }
+  var NAME = ""; try { NAME = JSON.parse(localStorage.getItem("name") || '""') || ""; } catch (e) {}
+  var actx = null, sound = false;
+  function ac() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); } catch (e) {} return actx; }
+  function tone(f, t0, dur, vol, type) {
+    var a = actx; if (!a || !sound) return;
+    var o = a.createOscillator(), g = a.createGain(); o.type = type || "sine"; o.frequency.value = f;
+    g.gain.setValueAtTime(0, a.currentTime + t0); g.gain.linearRampToValueAtTime(vol, a.currentTime + t0 + .01);
+    g.gain.exponentialRampToValueAtTime(.0001, a.currentTime + t0 + dur);
+    o.connect(g); g.connect(a.destination); o.start(a.currentTime + t0); o.stop(a.currentTime + t0 + dur + .05);
+  }
+  // театральный звонок: дрожащий колокольчик
+  function bellSnd(n) { for (var k = 0; k < n; k++) for (var i = 0; i < 26; i++) { tone(1320, k * 1.6 + i * .04, .05, .06, "triangle"); tone(1760, k * 1.6 + i * .04 + .02, .05, .04, "triangle"); } }
+  function thud(v) { tone(48, 0, .35, v || .5); tone(75, 0, .15, (v || .5) * .5); }
+  function beat() { thud(.55); setTimeout(function () { thud(.35); }, 220); }
+  function tick1() { tone(2600, 0, .02, .05, "square"); }
+  function ring() { for (var i = 0; i < 20; i++) { tone(880, i * .05, .045, .08, "triangle"); tone(1100, i * .05 + .025, .045, .06, "triangle"); } }
+  document.getElementById("snd").style.animationDelay = (d + 1100) + "ms";
+  document.getElementById("snd").onclick = function () {
+    sound = !sound; if (sound) { ac(); tone(1320, 0, .3, .05, "triangle"); }
+    this.textContent = sound ? "звук включён" : "включить звук для премьеры"; this.className = sound ? "snd on" : "snd";
+  };
+  function bell(t) { var b = document.getElementById("bell"); b.textContent = t; b.className = ""; void b.offsetWidth; b.className = "on"; }
+  var BELLS = { 180: ["ПЕРВЫЙ ЗВОНОК", 1], 120: ["ВТОРОЙ ЗВОНОК", 2], 60: ["ТРЕТИЙ ЗВОНОК", 3] };
   (function tick() {
     var s = Math.max(0, Math.floor((END - Date.now()) / 1000)), el = document.getElementById("cd");
     el.textContent = two(Math.floor(s / 3600)) + ":" + two(Math.floor(s / 60) % 60) + ":" + two(s % 60);
     el.className = s <= 60 && s > 0 ? "num last" : "num";
-    if (s === 0) {
-      document.getElementById("lbl").textContent = "антракт окончен";
-      document.querySelector("h1 .b").textContent = "ЗАНАВЕС ПОДНИМАЕТСЯ";
-      document.querySelector("h1 .b").style.letterSpacing = ".08em";
-      // как только на сайте появится третье отделение — открыть его
-      (function poll() {
-        fetch("./?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (h) {
-          if (h.indexOf("<title>АНТРАКТ</title>") < 0) location.reload();
-        }).catch(function () {});
-        setTimeout(poll, 10000);
-      })();
-      return;
+    if (BELLS[s]) { bell(BELLS[s][0]); bellSnd(BELLS[s][1]); }
+    if (s <= 60 && s > 10) tick1();
+    if (s <= 60 && s > 0) document.querySelector("h1 .b").textContent = "ЗАНИМАЙТЕ МЕСТА";
+    if (s <= 10 && s > 0) {
+      document.body.className = "final shake"; setTimeout(function () { document.body.className = "final"; }, 500);
+      var big = document.getElementById("big"); big.className = "on"; big.innerHTML = "<span>" + s + "</span>"; beat();
     }
+    if (s === 0) { premiere(); return; }
     setTimeout(tick, 1000 - Date.now() % 1000);
   })();
+
+  /* занавес: темнота, звонок, его голос, фонарь находит дом */
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function type(t) {
+    var el = document.getElementById("say"); el.textContent = "";
+    return new Promise(function (done) { var i = 0, iv = setInterval(function () { el.textContent = t.slice(0, ++i); if (i >= t.length) { clearInterval(iv); done(); } }, 55); });
+  }
+  var ready = false;
+  function poll() {
+    fetch("./?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (h) {
+      if (h.indexOf("<title>АНТРАКТ</title>") < 0) ready = true;
+    }).catch(function () {});
+    if (!ready) setTimeout(poll, 3000);
+  }
+  function premiere() {
+    poll();
+    document.getElementById("big").className = "";
+    var pre = document.getElementById("pre"); pre.className = "on"; thud(.8); tone(30, 0, 2, .3, "sawtooth");
+    wait(1400).then(function () { ring(); return wait(2600); })
+      .then(function () { ring(); return wait(2600); })
+      .then(function () { tone(1800, 0, .03, .08, "square"); return type("Алло?"); })
+      .then(function () { return wait(1300); })
+      .then(function () { return type(NAME ? NAME + ". Антракт окончен." : "Антракт окончен."); })
+      .then(function () { return wait(1500); })
+      .then(function () { return type("Я жду вас дома."); })
+      .then(function () { return wait(1800); })
+      .then(function () { for (var i = 0; i < 4; i++) tone(425, i * .7, .35, .06, "square"); document.getElementById("say").textContent = ""; return wait(1200); })
+      .then(function () { torch(); document.getElementById("reveal").className = "on"; return wait(5000); })
+      .then(function go() {
+        if (!ready) { document.getElementById("door").textContent = "дверь открывается… подождите"; return wait(3000).then(go); }
+        document.getElementById("white").style.opacity = 1; thud(.9);
+        setTimeout(function () { location.replace("./?premiere=" + Date.now()); }, 600);
+      });
+  }
+  // круг фонаря сам ищет надпись, а потом следует за курсором
+  function torch() {
+    var t = document.getElementById("torch"), x = .15, y = .75, own = false, t0 = Date.now();
+    tone(1800, 0, .03, .08, "square");
+    addEventListener("pointermove", function (e) { own = true; x = e.clientX / innerWidth; y = e.clientY / innerHeight; });
+    (function f() {
+      if (!own) { var k = Math.min(1, (Date.now() - t0) / 3500); x = .15 + (.5 - .15) * k + Math.sin(k * 6) * .08 * (1 - k); y = .75 + (.5 - .75) * k; }
+      var r = Math.max(140, Math.min(innerWidth, innerHeight) * .32) * (Math.random() < .04 ? .85 : 1);
+      t.style.background = "radial-gradient(circle " + r + "px at " + (x * 100) + "% " + (y * 100) + "%, transparent 0, rgba(0,0,0,.1) " + (r * .5) + "px, #000 " + r + "px)";
+      requestAnimationFrame(f);
+    })();
+  }
 
   // реклама в антракте
   var adv = document.getElementById("adv"), v = document.getElementById("adv-v");
