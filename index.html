@@ -77,7 +77,7 @@
   </div>
   <div class="panel"><span class="brand">ЭЛЕКТРОН</span><span class="grill"></span><button class="knob" id="knob" aria-label="переключить канал"></button></div>
 </div>
-<div class="hint">переключайте каналы · <b id="go">канал 2: реклама</b></div>
+<div class="hint"><span id="now">сейчас канал 1 · антракт</span> · <b id="go">переключить канал</b></div>
 <script>
   var $ = function (id) { return document.getElementById(id); };
   var v = $("v"), scr = $("scr");
@@ -97,7 +97,7 @@
   function setCh(n) {
     zap(); cur = n % CH.length; $("ch").textContent = "КАНАЛ " + (cur + 1);
     $("knob").style.transform = "rotate(" + cur * 90 + "deg)";
-    $("go").textContent = "канал " + ((cur + 1) % CH.length + 1) + (cur + 1 === CH.length ? ": антракт" : ": реклама");
+    $("now").textContent = "сейчас канал " + (cur + 1) + (cur ? " · реклама" : " · антракт");
     v.pause();
     if (!cur) { scr.className = "scr"; return; }
     scr.className = "scr ad"; v.src = CH[cur]; v.currentTime = 0; v.play().catch(function () {});
