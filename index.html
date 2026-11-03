@@ -95,6 +95,10 @@
   <div class="orn fade">✦</div>
   <h1><span class="a">ДАМЫ И ГОСПОДА,</span><span class="b">ОБЪЯВЛЯЕТСЯ АНТРАКТ!</span></h1>
   <div class="orn fade" id="end">✦ ✦ ✦</div>
+  <div class="cd fade" id="cdw">
+    <div class="lbl" id="lbl">до третьего отделения</div>
+    <div class="num" id="cd">--:--:--</div>
+  </div>
   <button class="adbtn fade" id="adb">во время антракта · реклама</button>
 </div>
 <div id="adv">
@@ -128,6 +132,30 @@
     d += 500;
   });
   document.getElementById("end").style.animationDelay = d + "ms";
+
+  document.getElementById("cdw").style.animationDelay = (d + 600) + "ms";
+  // третье отделение: 20:00 по Москве, 3 ноября 2026
+  var END = Date.UTC(2026, 10, 3, 17, 0, 0);
+  function two(n) { return (n < 10 ? "0" : "") + n; }
+  (function tick() {
+    var s = Math.max(0, Math.floor((END - Date.now()) / 1000)), el = document.getElementById("cd");
+    el.textContent = two(Math.floor(s / 3600)) + ":" + two(Math.floor(s / 60) % 60) + ":" + two(s % 60);
+    el.className = s <= 60 && s > 0 ? "num last" : "num";
+    if (s === 0) {
+      document.getElementById("lbl").textContent = "антракт окончен";
+      document.querySelector("h1 .b").textContent = "ЗАНАВЕС ПОДНИМАЕТСЯ";
+      document.querySelector("h1 .b").style.letterSpacing = ".08em";
+      // как только на сайте появится третье отделение — открыть его
+      (function poll() {
+        fetch("./?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (h) {
+          if (h.indexOf("<title>АНТРАКТ</title>") < 0) location.reload();
+        }).catch(function () {});
+        setTimeout(poll, 10000);
+      })();
+      return;
+    }
+    setTimeout(tick, 1000 - Date.now() % 1000);
+  })();
 
   // реклама в антракте
   var adv = document.getElementById("adv"), v = document.getElementById("adv-v");
