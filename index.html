@@ -4,111 +4,79 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>АНТРАКТ</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@500;700&family=VT323&display=swap" rel="stylesheet">
 <style>
-  /* Антракт идёт по телевизору в тёмной гостиной. */
   html, body { margin: 0; height: 100%; }
   body { background: #000; color: #eee; overflow: hidden; font-family: "Cormorant SC", serif; user-select: none; -webkit-user-select: none;
-         display: flex; align-items: center; justify-content: center; }
-  .room { position: fixed; inset: -3%; background: url(room.jpg) center / cover; filter: brightness(.35) saturate(.6); animation: glow 3.7s infinite; }
-  @keyframes glow { 0%, 100% { filter: brightness(.33) saturate(.6); } 47% { filter: brightness(.42) saturate(.6); } 49% { filter: brightness(.3) saturate(.6); } }
-  .vig { position: fixed; inset: 0; background: radial-gradient(ellipse 60% 55% at 50% 50%, transparent 30%, rgba(0,0,0,.85) 100%); pointer-events: none; }
-
-  .tv { position: relative; z-index: 2; width: min(720px, calc(100vw - 32px)); padding: 22px 22px 54px; box-sizing: border-box;
-        background: linear-gradient(160deg, #4a3a2c, #2a1f17 60%, #1a130e); border-radius: 26px;
-        box-shadow: 0 0 0 2px #120c08, 0 0 90px rgba(170,190,220,.18), 0 40px 120px #000; }
-  .tv::after { content: ""; position: absolute; inset: 6px; border-radius: 22px; border: 1px solid rgba(255,255,255,.06); pointer-events: none; }
-  .scr { position: relative; aspect-ratio: 4 / 3; background: #000; border-radius: 34px / 40px; overflow: hidden; box-shadow: inset 0 0 50px #000, 0 0 0 6px #0c0907; }
-  .scr canvas, .scr video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .scr canvas { opacity: .22; }
-  .scr video { opacity: 0; transition: opacity .2s; }
+         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+  .hall { position: fixed; inset: -3%; background: url(hall.jpg) center / cover; filter: brightness(.28) sepia(.4); }
+  .beam { position: fixed; left: 50%; top: -10%; width: 140vw; height: 70vh; transform: translateX(-50%); pointer-events: none;
+          background: radial-gradient(ellipse 30% 100% at 50% 0%, rgba(255,240,200,.12), transparent 70%); animation: fl .13s infinite; }
+  @keyframes fl { 50% { opacity: .85; } }
+  .vig { position: fixed; inset: 0; background: radial-gradient(ellipse 60% 55% at 50% 50%, transparent 35%, rgba(0,0,0,.9) 100%); pointer-events: none; }
+  .scr { position: relative; z-index: 2; width: min(760px, calc(100vw - 32px)); aspect-ratio: 16 / 10; background: #d9d2c0; overflow: hidden;
+         box-shadow: 0 0 0 10px #0b0907, 0 0 120px rgba(255,235,190,.25); animation: fl .11s infinite; }
+  .scr video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; opacity: 0; }
   .scr.ad video { opacity: 1; }
-  .scr.ad canvas { opacity: .05; }
-  .scr.ad .cast { opacity: 0; }
-  .lines { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 1px, transparent 1px 3px); z-index: 3; }
-  .bulge { position: absolute; inset: 0; pointer-events: none; z-index: 4; border-radius: inherit;
-           background: radial-gradient(ellipse at 35% 25%, rgba(255,255,255,.09), transparent 45%), radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(0,0,0,.6)); }
-  .roll { position: absolute; left: 0; right: 0; height: 18%; z-index: 3; pointer-events: none;
-          background: linear-gradient(transparent, rgba(255,255,255,.06), transparent); animation: roll 6s linear infinite; }
-  @keyframes roll { from { top: -20%; } to { top: 110%; } }
-
-  .osd { position: absolute; z-index: 5; font-family: "VT323", monospace; color: #8fff9a; text-shadow: 0 0 6px rgba(120,255,140,.7); font-size: clamp(16px, 3vw, 26px); }
-  .osd.ch { top: 6%; left: 7%; }
-  .osd.tm { top: 6%; right: 7%; }
-  .osd.rec { bottom: 7%; left: 7%; color: #ff6b6b; text-shadow: 0 0 6px rgba(255,80,80,.7); animation: blink 1.2s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-
-  .cast { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 8%;
-          animation: jit 7s infinite; transition: opacity .2s; }
-  @keyframes jit { 0%, 92%, 100% { transform: none; } 93% { transform: translateX(6px) skewX(4deg); } 94% { transform: translateX(-4px); } 95% { transform: none; } }
-  .cast .a { font-size: clamp(16px, 3.4vw, 28px); letter-spacing: .3em; margin-right: -.3em; }
-  .cast .b { margin-top: .4em; font-weight: 700; font-size: clamp(24px, 5.6vw, 50px); letter-spacing: .08em; line-height: 1.1;
-             text-shadow: 2px 0 rgba(255,40,40,.55), -2px 0 rgba(40,200,255,.55), 0 0 22px rgba(255,255,255,.35); }
-  .cast .c { margin-top: 1.2em; font-size: clamp(12px, 2.2vw, 16px); letter-spacing: .3em; color: rgba(255,255,255,.6); }
-
-  .panel { position: absolute; left: 26px; right: 26px; bottom: 12px; display: flex; align-items: center; gap: 14px; }
-  .brand { font: 700 13px "Cormorant SC", serif; letter-spacing: .4em; color: #b9a58c; }
-  .grill { flex: 1; height: 18px; background: repeating-linear-gradient(90deg, #120c08 0 3px, transparent 3px 6px); opacity: .7; }
-  .knob { width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #8a7a66, #2b221a 70%); box-shadow: 0 2px 4px #000;
-          border: 0; padding: 0; cursor: pointer; position: relative; }
-  .knob::after { content: ""; position: absolute; left: 50%; top: 3px; width: 2px; height: 10px; background: #e8dcc8; transform: translateX(-50%); }
-  .knob { transition: transform .25s; }
-  .hint { position: fixed; z-index: 3; left: 0; right: 0; bottom: max(18px, env(safe-area-inset-bottom)); text-align: center; letter-spacing: .3em;
-          font-size: clamp(12px, 2.2vw, 15px); color: rgba(255,255,255,.55); padding: 0 16px; }
-  .hint b { color: #fff; font-weight: 500; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,.4); }
-  .bar { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: #8fff9a; z-index: 6; box-shadow: 0 0 6px #8fff9a; }
+  .scr.ad .lead { display: none; }
+  .lead { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #1a1612; text-align: center; }
+  .ring { position: absolute; width: 62%; aspect-ratio: 1; border-radius: 50%; border: 3px solid #1a1612; }
+  .ring.b { width: 48%; }
+  .cross { position: absolute; inset: 0; background: linear-gradient(#1a1612, #1a1612) center / 2px 100% no-repeat, linear-gradient(#1a1612, #1a1612) center / 100% 2px no-repeat; opacity: .6; }
+  .sweep { position: absolute; width: 62%; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(rgba(0,0,0,.35) var(--a, 0deg), transparent 0); }
+  .num { position: relative; font: 700 clamp(70px, 18vw, 170px) "Cormorant SC", serif; line-height: 1; }
+  .txt { position: absolute; bottom: 9%; left: 0; right: 0; text-align: center; color: #1a1612; }
+  .txt b { display: block; font-size: clamp(22px, 5vw, 44px); letter-spacing: .1em; }
+  .txt small { font-size: clamp(11px, 2vw, 14px); letter-spacing: .4em; }
+  .dust { position: absolute; inset: 0; pointer-events: none; z-index: 3; mix-blend-mode: multiply; }
+  .scr.ad .dust { mix-blend-mode: screen; opacity: .5; }
+  .tag { position: absolute; top: 4%; left: 4%; z-index: 4; font: 18px "VT323", monospace; color: #1a1612; letter-spacing: .1em; }
+  .scr.ad .tag { color: #e8dcc0; }
+  .reels { position: relative; z-index: 2; display: flex; gap: 22px; }
+  .reels button { background: none; border: 0; padding: 0; cursor: pointer; color: rgba(255,255,255,.6); font: 500 13px "Cormorant SC", serif; letter-spacing: .3em; text-align: center; }
+  .reels img { width: 64px; height: 64px; display: block; margin: 0 auto 6px; filter: brightness(.75); transition: filter .2s; }
+  .reels button:hover img { filter: brightness(1); }
+  .reels button.on img { filter: brightness(1.1) drop-shadow(0 0 10px rgba(255,235,190,.6)); animation: spin 2s linear infinite; }
+  .reels button.on { color: #fff; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hint { position: relative; z-index: 2; font-size: 13px; letter-spacing: .3em; color: rgba(255,255,255,.45); text-align: center; padding: 0 16px; }
 </style>
 </head>
 <body>
-<div class="room"></div>
-<div class="vig"></div>
-<div class="tv">
-  <div class="scr" id="scr">
-    <canvas id="g" width="160" height="120"></canvas>
-    <video id="v" src="reklama.mp4" playsinline preload="none"></video>
-    <div class="cast"><div class="a">ДАМЫ И ГОСПОДА,</div><div class="b">ОБЪЯВЛЯЕТСЯ<br>АНТРАКТ!</div><div class="c">не переключайтесь</div></div>
-    <div class="osd ch" id="ch">КАНАЛ 1</div>
-    <div class="osd tm" id="tm">--:--</div>
-    <div class="osd rec">● ЭФИР</div>
-    <div class="roll"></div><div class="lines"></div><div class="bulge"></div>
-    <div class="bar" id="bar"></div>
-  </div>
-  <div class="panel"><span class="brand">ЭЛЕКТРОН</span><span class="grill"></span><button class="knob" id="knob" aria-label="переключить канал"></button></div>
+<div class="hall"></div><div class="beam"></div><div class="vig"></div>
+<div class="scr" id="scr">
+  <video id="v" playsinline preload="none"></video>
+  <div class="lead"><div class="sweep" id="sw"></div><div class="ring"></div><div class="ring b"></div><div class="cross"></div><div class="num" id="num">8</div>
+    <div class="txt"><b>ОБЪЯВЛЯЕТСЯ АНТРАКТ</b><small>киностудия сектор-69 · не выходите из зала</small></div></div>
+  <canvas class="dust" id="d" width="320" height="200"></canvas>
+  <div class="tag" id="tag">АНТРАКТ</div>
 </div>
-<div class="hint"><span id="now">сейчас канал 1 · антракт</span> · <b id="go">переключить канал</b></div>
+<div class="reels" id="reels">
+  <button data-s="reklama.mp4"><img src="reel.png" alt="">плёнка 1</button>
+  <button data-s="reklama3.mp4"><img src="reel.png" alt="">плёнка 2</button>
+  <button data-s="reklama4.mp4"><img src="reel.png" alt="">плёнка 3</button>
+</div>
+<div class="hint" id="hint">во время антракта · реклама на плёнках</div>
 <script>
-  var $ = function (id) { return document.getElementById(id); };
-  var v = $("v"), scr = $("scr");
-  // помехи
-  var g = $("g").getContext("2d"), im = g.createImageData(160, 120);
-  (function snow() {
-    for (var i = 0; i < im.data.length; i += 4) { var c = Math.random() * 255; im.data[i] = im.data[i + 1] = im.data[i + 2] = c; im.data[i + 3] = 255; }
-    g.putImageData(im, 0, 0); setTimeout(function () { requestAnimationFrame(snow); }, 50);
-  })();
-  // часы зрителя в углу экрана
-  (function clock() { var d = new Date(); $("tm").textContent = (d.getHours() < 10 ? "0" : "") + d.getHours() + ":" + (d.getMinutes() < 10 ? "0" : "") + d.getMinutes(); setTimeout(clock, 5000); })();
-  function zap() {
-    scr.querySelector("canvas").style.opacity = 1;
-    setTimeout(function () { scr.querySelector("canvas").style.opacity = ""; }, 260);
-  }
-  var CH = [null, "reklama.mp4", "reklama3.mp4", "reklama4.mp4"], cur = 0;
-  function setCh(n) {
-    zap(); cur = n % CH.length; $("ch").textContent = "КАНАЛ " + (cur + 1);
-    $("knob").style.transform = "rotate(" + cur * 90 + "deg)";
-    $("now").textContent = "сейчас канал " + (cur + 1) + (cur ? " · реклама" : " · антракт");
-    v.pause();
-    if (!cur) { scr.className = "scr"; return; }
-    scr.className = "scr ad"; v.src = CH[cur]; v.currentTime = 0; v.play().catch(function () {});
-  }
-  function toggle() { setCh(cur + 1); }
-  function setAd(on) { setCh(on ? 1 : 0); }
-  $("knob").onclick = toggle; $("go").onclick = toggle;
+  var $ = function (id) { return document.getElementById(id); }, v = $("v"), scr = $("scr");
+  // отсчёт ракорда
+  var n = 8, t0 = Date.now();
+  (function lead() { var p = ((Date.now() - t0) % 1000) / 1000; $("sw").style.setProperty("--a", p * 360 + "deg");
+    var k = 8 - Math.floor((Date.now() - t0) / 1000) % 7; if (k !== n) { n = k; $("num").textContent = n; } requestAnimationFrame(lead); })();
+  // пыль и царапины
+  var g = $("d").getContext("2d");
+  (function dust() { g.clearRect(0, 0, 320, 200); g.fillStyle = "rgba(0,0,0,.5)"; g.strokeStyle = "rgba(0,0,0,.35)";
+    for (var i = 0; i < 14; i++) g.fillRect(Math.random() * 320, Math.random() * 200, Math.random() * 2 + .5, Math.random() * 2 + .5);
+    if (Math.random() < .5) { var x = Math.random() * 320; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + Math.random() * 4 - 2, 200); g.stroke(); }
+    setTimeout(dust, 70); })();
+  var bs = document.querySelectorAll("#reels button"), cur = -1;
+  function stop() { v.pause(); scr.className = "scr"; cur = -1; $("tag").textContent = "АНТРАКТ"; [].forEach.call(bs, function (b) { b.className = ""; }); }
+  [].forEach.call(bs, function (b, i) { b.onclick = function () {
+    if (cur === i) { stop(); return; }
+    stop(); cur = i; b.className = "on"; scr.className = "scr ad"; $("tag").textContent = "ПЛЁНКА " + (i + 1);
+    v.src = b.getAttribute("data-s"); v.currentTime = 0; v.play().catch(function () {}); }; });
   v.onclick = function () { if (v.paused) v.play(); else v.pause(); };
-  v.ontimeupdate = function () { $("bar").style.width = (v.duration ? v.currentTime / v.duration * 100 : 0) + "%"; };
-  v.onended = function () { setTimeout(function () { setCh(0); }, 700); };
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && scr.className.indexOf("ad") >= 0) setAd(false); });
+  v.onended = function () { setTimeout(stop, 700); };
 </script>
 </body>
 </html>
