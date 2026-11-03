@@ -48,6 +48,12 @@
              text-shadow: 2px 0 rgba(255,40,40,.55), -2px 0 rgba(40,200,255,.55), 0 0 22px rgba(255,255,255,.35); }
   .cast .c { margin-top: 1.2em; font-size: clamp(12px, 2.2vw, 16px); letter-spacing: .3em; color: rgba(255,255,255,.6); }
 
+  .cast .cd { margin-top: .3em; font-family: "VT323", monospace; font-size: clamp(34px, 8vw, 72px); color: #fff; letter-spacing: .08em;
+               text-shadow: 2px 0 rgba(255,40,40,.55), -2px 0 rgba(40,200,255,.55), 0 0 18px rgba(255,255,255,.4); }
+  .cast .cd.last { color: #ff5a5a; animation: blink .5s steps(1) infinite; }
+  .clap { position: fixed; inset: 0; z-index: 20; background: #000; display: none; align-items: center; justify-content: center; flex-direction: column;
+          font: 700 clamp(48px, 14vw, 140px) "Cormorant SC", serif; color: #fff; letter-spacing: .1em; }
+  .clap small { font-size: .18em; letter-spacing: .5em; color: rgba(255,255,255,.6); margin-top: 1em; }
   .panel { position: absolute; left: 26px; right: 26px; bottom: 12px; display: flex; align-items: center; gap: 14px; }
   .brand { font: 700 13px "Cormorant SC", serif; letter-spacing: .4em; color: #b9a58c; }
   .grill { flex: 1; height: 18px; background: repeating-linear-gradient(90deg, #120c08 0 3px, transparent 3px 6px); opacity: .7; }
@@ -68,7 +74,7 @@
   <div class="scr" id="scr">
     <canvas id="g" width="160" height="120"></canvas>
     <video id="v" src="reklama.mp4" playsinline preload="none"></video>
-    <div class="cast"><div class="a">ДАМЫ И ГОСПОДА,</div><div class="b">ОБЪЯВЛЯЕТСЯ<br>АНТРАКТ!</div><div class="c">не переключайтесь</div></div>
+    <div class="cast"><div class="a">ДАМЫ И ГОСПОДА,</div><div class="b">ОБЪЯВЛЯЕТСЯ<br>АНТРАКТ!</div><div class="c">до четвёртого отделения</div><div class="cd" id="cd">--:--</div></div>
     <div class="osd ch" id="ch">КАНАЛ 1</div>
     <div class="osd tm" id="tm">--:--</div>
     <div class="osd rec">● ЭФИР</div>
@@ -77,6 +83,7 @@
   </div>
   <div class="panel"><span class="brand">ЭЛЕКТРОН</span><span class="grill"></span><button class="knob" id="knob" aria-label="переключить канал"></button></div>
 </div>
+<div class="clap" id="clap"><div>МОТОР!</div><small>сектор-69 · дубль 13</small></div>
 <div class="hint"><span id="now">сейчас канал 1 · антракт</span> · <b id="go">переключить канал</b></div>
 <script>
   var $ = function (id) { return document.getElementById(id); };
@@ -109,6 +116,23 @@
   v.ontimeupdate = function () { $("bar").style.width = (v.duration ? v.currentTime / v.duration * 100 : 0) + "%"; };
   v.onended = function () { setTimeout(function () { setCh(0); }, 700); };
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && scr.className.indexOf("ad") >= 0) setAd(false); });
+  var T = Date.UTC(2026, 10, 3, 18, 45, 0), done = false;
+  function p2(n) { return (n < 10 ? "0" : "") + n; }
+  (function cd() {
+    var s = Math.max(0, Math.ceil((T - Date.now()) / 1000));
+    $("cd").textContent = p2(Math.floor(s / 60)) + ":" + p2(s % 60); $("cd").className = s <= 10 ? "cd last" : "cd";
+    if (s <= 10 && s > 0 && cur) setCh(0);
+    if (s === 0 && !done) {
+      done = true; v.pause(); var c = $("clap"); c.style.display = "flex";
+      try { var a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g2 = a.createGain(); o.type = "square"; o.frequency.value = 90;
+        g2.gain.setValueAtTime(.5, a.currentTime); g2.gain.exponentialRampToValueAtTime(.001, a.currentTime + .25); o.connect(g2); g2.connect(a.destination); o.start(); o.stop(a.currentTime + .3); } catch (e) {}
+      (function retry() { setTimeout(function () {
+        fetch("./?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (h) {
+          if (h.indexOf("<title>АНТРАКТ</title>") < 0) location.replace("./?motor=" + Date.now()); else retry();
+        }).catch(retry); }, 2500); })();
+    }
+    setTimeout(cd, 250);
+  })();
 </script>
 </body>
 </html>
