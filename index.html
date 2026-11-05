@@ -28,6 +28,12 @@
   .txt { position: absolute; bottom: 9%; left: 0; right: 0; text-align: center; color: #1a1612; }
   .txt b { display: block; font-size: clamp(22px, 5vw, 44px); letter-spacing: .1em; }
   .txt small { font-size: clamp(11px, 2vw, 14px); letter-spacing: .4em; }
+  .txt .cd { display: block; margin-top: .2em; font: clamp(30px, 7vw, 60px) "VT323", monospace; letter-spacing: .08em; }
+  .txt .cd.last { color: #c0006a; }
+  .bye { position: fixed; inset: 0; z-index: 30; background: #fff; display: none; flex-direction: column; align-items: center; justify-content: center; color: #000; text-align: center; }
+  .bye b { font: 700 clamp(40px, 11vw, 110px) "Cormorant SC", serif; letter-spacing: .1em; }
+  .bye b em { font-style: normal; color: #ff1493; }
+  .bye small { font-size: 14px; letter-spacing: .5em; margin-top: 1em; }
   .dust { position: absolute; inset: 0; pointer-events: none; z-index: 3; mix-blend-mode: multiply; }
   .scr.ad .dust { mix-blend-mode: screen; opacity: .5; }
   .tag { position: absolute; top: 4%; left: 4%; z-index: 4; font: 18px "VT323", monospace; color: #1a1612; letter-spacing: .1em; }
@@ -47,10 +53,11 @@
 <div class="scr" id="scr">
   <video id="v" playsinline preload="none"></video>
   <div class="lead"><div class="sweep" id="sw"></div><div class="ring"></div><div class="ring b"></div><div class="cross"></div><div class="num" id="num">8</div>
-    <div class="txt"><b>ОБЪЯВЛЯЕТСЯ АНТРАКТ</b><small>киностудия сектор-69 · не выходите из зала</small></div></div>
+    <div class="txt"><b>ОБЪЯВЛЯЕТСЯ АНТРАКТ</b><small>до пятого отделения</small><span class="cd" id="cd">--:--:--</span></div></div>
   <canvas class="dust" id="d" width="320" height="200"></canvas>
   <div class="tag" id="tag">АНТРАКТ</div>
 </div>
+<div class="bye" id="bye"><b>МИССИС <em>ТАБУ</em></b><small>тсс</small></div>
 <div class="reels" id="reels">
   <button data-s="reklama.mp4"><img src="reel.png" alt="">плёнка 1</button>
   <button data-s="reklama3.mp4"><img src="reel.png" alt="">плёнка 2</button>
@@ -77,6 +84,18 @@
     v.src = b.getAttribute("data-s"); v.currentTime = 0; v.play().catch(function () {}); }; });
   v.onclick = function () { if (v.paused) v.play(); else v.pause(); };
   v.onended = function () { setTimeout(stop, 700); };
+  var T = Date.UTC(2026, 10, 5, 18, 0, 0), done = false;
+  function p2(n) { return (n < 10 ? "0" : "") + n; }
+  (function cd() {
+    var s = Math.max(0, Math.ceil((T - Date.now()) / 1000));
+    $("cd").textContent = p2(Math.floor(s / 3600)) + ":" + p2(Math.floor(s / 60) % 60) + ":" + p2(s % 60);
+    $("cd").className = s <= 10 ? "cd last" : "cd";
+    if (s <= 10 && s > 0 && cur >= 0) stop();
+    if (s === 0 && !done) { done = true; $("bye").style.display = "flex";
+      (function retry() { setTimeout(function () { fetch("./?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (h) {
+        if (h.indexOf("<title>АНТРАКТ</title>") < 0) location.replace("./?tss=" + Date.now()); else retry(); }).catch(retry); }, 2500); })(); }
+    setTimeout(cd, 250);
+  })();
 </script>
 </body>
 </html>
