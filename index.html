@@ -98,6 +98,22 @@
     .jump:hover { background: #512839; box-shadow: 0 0 1.2rem #ff824e55; }
     .jump:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
     .jump:disabled { opacity: .72; cursor: progress; }
+    .plate { cursor: pointer; }
+    .plate:hover .plate-face, .plate:focus-visible .plate-face { fill: var(--orange); }
+    .plate:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+    .log {
+      width: min(100% - 2rem, 28rem);
+      padding: clamp(1.25rem, 5vw, 2rem);
+      border: 1px solid var(--line);
+      border-top: 2px solid var(--orange);
+      background: #11111f;
+      color: var(--white);
+      box-shadow: 0 0 2.5rem #ff681b26;
+    }
+    .log::backdrop { background: #050610cf; }
+    .log h2 { margin: 0 0 1.5rem; font-size: clamp(1.3rem, 5vw, 1.7rem); }
+    .log blockquote { margin: .6rem 0 1.5rem; font-size: 1.1rem; line-height: 1.6; }
+    .log .eyebrow { margin-bottom: .5rem; }
     .machine { margin: 0; position: relative; isolation: isolate; }
     svg { display: block; width: 100%; height: auto; overflow: visible; }
     .portal-ticks { transform-origin: 470px 237px; animation: orbit 24s linear infinite; }
@@ -174,7 +190,7 @@
         <button class="jump" type="button" id="jump" hidden>Запустить временной прыжок ↗</button>
       </div>
       <figure class="machine">
-        <svg viewBox="0 0 760 510" role="img" aria-labelledby="car-title">
+        <svg viewBox="0 0 760 510" role="group" aria-labelledby="car-title">
           <title id="car-title">Чёрная ГАЗ-31105 «Волга» перед светящимся порталом времени</title>
           <defs>
             <linearGradient id="paint" x2="0" y2="1">
@@ -259,8 +275,11 @@
             <ellipse cx="548" cy="332" rx="68" ry="39" fill="url(#beam)" opacity=".52"/>
             <ellipse cx="692" cy="340" rx="61" ry="41" fill="url(#beam)" opacity=".49"/>
             <path d="M512 365q64 18 150 19l40-13m-165 13 35 8m81 2 39-10" fill="none" stroke="#747e91" stroke-width="2"/>
-            <path d="m585 375 61 4-4 15-57-4z" fill="#d3d7e3"/>
-            <text x="614" y="388" fill="#181927" font-family="monospace" font-size="9" text-anchor="middle">В 311 ОЛ</text>
+            <a class="plate" id="plate" href="#log" aria-label="В 311 ОЛ. Открыть бортовой журнал" aria-haspopup="dialog">
+              <rect x="570" y="359" width="88" height="52" fill="transparent"/>
+              <path class="plate-face" d="m585 375 61 4-4 15-57-4z" fill="#d3d7e3"/>
+              <text x="614" y="388" fill="#181927" font-family="monospace" font-size="9" text-anchor="middle">В 311 ОЛ</text>
+            </a>
             <g fill="#08090e" stroke="#41475a" stroke-width="3">
               <ellipse cx="196" cy="369" rx="36" ry="45"/>
               <ellipse cx="475" cy="377" rx="42" ry="53"/>
@@ -289,12 +308,28 @@
       <div><dt>СКОРОСТЬ</dt><dd id="speed">00 МИЛЬ/Ч</dd></div>
       <div><dt>ТОЧКА ПРИБЫТИЯ</dt><dd>-- / -- / ----</dd></div>
     </dl>
+    <dialog class="log" id="log" aria-labelledby="log-title">
+      <p class="eyebrow">В 311 ОЛ / АРХИВ</p>
+      <h2 id="log-title">Бортовой журнал</h2>
+      <p class="eyebrow">ПОСЛЕДНЯЯ ЗАПИСЬ · ДАТА СТЁРТА</p>
+      <blockquote>Я оставил ключи там же, где ты их найдёшь вчера.</blockquote>
+      <form method="dialog">
+        <button class="jump" autofocus>Закрыть журнал</button>
+      </form>
+    </dialog>
   </main>
   <script>
     const jump = document.querySelector('#jump');
     const machine = document.querySelector('.machine');
     const signalStatus = document.querySelector('#status');
     const speed = document.querySelector('#speed');
+    const plate = document.querySelector('#plate');
+    const log = document.querySelector('#log');
+
+    plate.addEventListener('click', event => {
+      event.preventDefault();
+      log.showModal();
+    });
 
     jump.hidden = false;
     jump.addEventListener('click', () => {
