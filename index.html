@@ -3,22 +3,521 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#201b18">
   <title>Блокнот Дока · OUTATIME</title>
   <style>
-    :root { color-scheme: dark; font-family: Georgia, serif; background: #201b1d; color: #ffebc1; }
-    body { margin: 0; min-height: 100svh; display: grid; place-items: center; padding: 1rem; box-sizing: border-box; }
-    main { width: min(100%, 27rem); padding: 2rem; border: 1px solid #b4865a; box-sizing: border-box; }
-    p { line-height: 1.5; }
-    a { color: #ffc380; text-underline-offset: .2em; }
-    a:focus-visible { outline: 2px solid #92e9ff; outline-offset: 4px; }
+    :root {
+      color-scheme: dark;
+      --white: #fff5e5;
+      --muted: #b3b1cb;
+      --orange: #ffb46e;
+      --cyan: #92e9ff;
+      --line: #37374f;
+      --mono: ui-monospace, "Courier New", monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--white);
+      background: radial-gradient(ellipse at 78% 35%, #222044 0, transparent 43%), #080916;
+      font-family: system-ui, sans-serif;
+    }
+    .console {
+      width: min(100% - 3rem, 79rem);
+      min-height: 100svh;
+      margin-inline: auto;
+      padding-block: clamp(1rem, 3.5vw, 2.65rem);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    .rail, .telemetry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      font: 700 .72rem/1.5 var(--mono);
+      letter-spacing: .1em;
+    }
+    .rail { border-bottom: 1px solid var(--line); padding-bottom: 1rem; }
+    .brand { color: var(--orange); }
+    .status { color: var(--muted); text-align: right; }
+    .status::before {
+      content: "";
+      display: inline-block;
+      width: .45rem;
+      height: .45rem;
+      margin-right: .6em;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 .8rem var(--cyan);
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, .84fr) minmax(0, 1.16fr);
+      align-items: center;
+      padding-block: clamp(2rem, 7vw, 6rem);
+    }
+    .copy { position: relative; z-index: 1; }
+    .eyebrow {
+      margin: 0 0 1.15rem;
+      color: var(--cyan);
+      font: 700 .75rem/1.5 var(--mono);
+      letter-spacing: .14em;
+    }
+    h1 {
+      max-width: 12ch;
+      margin: 0;
+      font: 900 clamp(2.25rem, 5.15vw, 5.2rem)/.99 system-ui, sans-serif;
+      letter-spacing: -.065em;
+    }
+    h1 em {
+      color: var(--orange);
+      font-style: italic;
+      text-shadow: 0 0 1.6rem #ff681b55;
+    }
+    .transmission {
+      max-width: 29ch;
+      margin: 1.45rem 0;
+      padding-left: 1rem;
+      border-left: 2px solid #a6eaff;
+      color: var(--cyan);
+      font: 600 clamp(.85rem, 1.7vw, 1.05rem)/1.6 var(--mono);
+      animation: transmission-in .9s ease-out both;
+    }
+    .jump {
+      padding: .8rem 1rem;
+      border: 1px solid #ffac65;
+      border-radius: .25rem;
+      background: #281523;
+      color: var(--white);
+      font: 700 .77rem/1.5 var(--mono);
+      letter-spacing: .045em;
+      cursor: pointer;
+      transition: background-color .2s, box-shadow .2s;
+    }
+    .jump:hover { background: #512839; box-shadow: 0 0 1.2rem #ff824e55; }
+    .jump:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+    .jump:disabled { opacity: .72; cursor: progress; }
+    .plate { cursor: pointer; }
+    .plate:hover .plate-face, .plate:focus-visible .plate-face { fill: var(--orange); }
+    .plate:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+    .log {
+      width: min(100% - 2rem, 28rem);
+      padding: clamp(1.25rem, 5vw, 2rem);
+      border: 1px solid var(--line);
+      border-top: 2px solid var(--orange);
+      background: #11111f;
+      color: var(--white);
+      box-shadow: 0 0 2.5rem #ff681b26;
+    }
+    .log::backdrop { background: #050610cf; }
+    .log h2 { margin: 0 0 1.5rem; font-size: clamp(1.3rem, 5vw, 1.7rem); }
+    .log blockquote { margin: .6rem 0 1.5rem; font-size: 1.1rem; line-height: 1.6; }
+    .log .eyebrow { margin-bottom: .5rem; }
+    .machine { margin: 0; position: relative; isolation: isolate; }
+    svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .portal-ticks { transform-origin: 470px 237px; animation: orbit 24s linear infinite; }
+    .portal-light { animation: pulse 4s ease-in-out infinite; }
+    .trail { animation: trail 3.8s linear infinite; }
+    .trail:nth-of-type(2) { animation-delay: -1.25s; }
+    .trail:nth-of-type(3) { animation-delay: -2.5s; }
+    .flash {
+      position: absolute;
+      inset: 6% 2%;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(ellipse, #d7fbff 0, #55c4ff88 24%, transparent 67%);
+    }
+    .is-jumping .flash { animation: jump-flash 1.35s ease-out; }
+    .is-jumping .car { transform-origin: 417px 345px; animation: car-jump 1.35s ease-in-out; }
+    .is-jumping .portal-ticks { animation-duration: 1.25s; }
+    .telemetry {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin: 0;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+    }
+    .telemetry dd { margin: .35rem 0 0; color: var(--orange); letter-spacing: .035em; }
+    .telemetry div:nth-child(2) dd { color: var(--cyan); }
+    @keyframes orbit { to { transform: rotate(360deg); } }
+    @keyframes pulse { 50% { opacity: .45; } }
+    @keyframes trail {
+      0%, 100% { opacity: 0; transform: translateX(-30px); }
+      38% { opacity: .85; }
+      85% { opacity: 0; transform: translateX(65px); }
+    }
+    @keyframes transmission-in {
+      from { opacity: 0; transform: translateY(.4rem); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes jump-flash {
+      0%, 100% { opacity: 0; }
+      44% { opacity: .75; }
+    }
+    @keyframes car-jump {
+      35% { transform: translateX(14px) scale(1.025); }
+      55% { transform: translateX(-14px) scale(.97); }
+    }
+    @media (max-width: 760px) {
+      .hero { grid-template-columns: 1fr; gap: .85rem; }
+      .machine { width: min(100%, 39rem); justify-self: center; }
+      h1 { max-width: 15ch; font-size: clamp(2.2rem, 8.7vw, 4.3rem); }
+      .rail, .telemetry { letter-spacing: .015em; }
+    }
+    @media (max-width: 390px) {
+      .console { width: calc(100% - 2rem); }
+      .rail, .telemetry { font-size: .65rem; }
+      .telemetry { gap: .5rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+
+    :root {
+      color-scheme: light;
+      --white: #312419;
+      --muted: #594938;
+      --orange: #8f3d2e;
+      --cyan: #274e65;
+      --line: #b99d71;
+    }
+    body {
+      background: radial-gradient(ellipse at 45% 25%, #4b392e, #1d1919 80%);
+      font-family: Georgia, serif;
+    }
+    .console {
+      position: relative;
+      width: min(100% - 2rem, 73rem);
+      min-height: calc(100svh - 3rem);
+      margin: 1.5rem auto;
+      padding: clamp(1.15rem, 4.2vw, 3.5rem) clamp(1rem, 4.8vw, 4rem);
+      grid-template-rows: auto 1fr auto auto;
+      border: 1px solid #bfa477;
+      background:
+        linear-gradient(90deg, #ac774a2b, transparent 7%, transparent 95%, #bd925032),
+        repeating-linear-gradient(0deg, transparent 0 29px, #94785220 29px 30px),
+        #f4e2b8;
+      box-shadow: .5rem .55rem #8f6949, .85rem .85rem #352720, 0 1.3rem 4rem #0007;
+      transform-origin: top left;
+      animation: open-notebook .9s cubic-bezier(.18,.75,.32,1) both;
+    }
+    .hero {
+      gap: clamp(1.15rem, 4vw, 4rem);
+      padding-block: clamp(2rem, 6vw, 4.5rem);
+    }
+    h1 {
+      max-width: 17ch;
+      font: 700 clamp(2.15rem, 4.3vw, 4.4rem)/1.02 Georgia, serif;
+      letter-spacing: -.055em;
+    }
+    h1 em { text-shadow: none; }
+    .status::before { background: #377378; box-shadow: none; }
+    .transmission {
+      max-width: 34ch;
+      border-color: #527186;
+      animation-delay: .23s;
+    }
+    .memory {
+      max-width: 33rem;
+      margin-block: 1.4rem;
+      padding: .85rem 1rem;
+      border: 1px solid #ba9c73;
+      background: #f9eac8;
+      box-shadow: .2rem .25rem #946a4522;
+      transform: rotate(-1deg);
+    }
+    .memory .eyebrow { color: var(--orange); margin-bottom: .4rem; }
+    .memory p:last-child {
+      margin: 0;
+      color: #403328;
+      font: italic 1.05rem/1.5 Georgia, serif;
+    }
+    .machine { background: none; }
+    .photo {
+      position: relative;
+      overflow: hidden;
+      border: .45rem solid #fbefcf;
+      background: radial-gradient(ellipse at 65% 36%, #262342, #121523 72%);
+      box-shadow: 0 .25rem .7rem #48311f66;
+      transform: rotate(1.5deg);
+    }
+    .photo svg { overflow: hidden; }
+    .photo .plate:focus-visible { outline-color: #a5e8ff; }
+    figcaption { margin-top: .85rem; color: var(--muted); font: italic .95rem Georgia, serif; }
+    .jump { background: #453127; color: #fff0ce; border-color: #453127; }
+    .jump:hover { background: #683d2e; box-shadow: none; }
+    .logout { margin-top: .9rem; justify-self: end; }
+    .logout button {
+      border: 0;
+      padding: .35rem .15rem;
+      background: transparent;
+      color: var(--orange);
+      text-decoration: underline;
+      text-underline-offset: .25em;
+      font: 700 .72rem/1.5 var(--mono);
+      cursor: pointer;
+    }
+    .logout button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+    .log { background: #f5e3ba; }
+    @keyframes open-notebook {
+      from { opacity: 0; transform: translateY(.9rem) rotate(-1.1deg) scale(.98); }
+      to { opacity: 1; transform: none; }
+    }
+    @media (max-width: 760px) {
+      .console { margin-block: 1rem; }
+      h1 { font-size: clamp(2.15rem, 8vw, 3.75rem); }
+    }
+
+    [hidden] { display: none !important; }
+    .gate {
+      width: min(calc(100% - 2rem), 29rem);
+      margin: max(1rem, calc((100svh - 29rem) / 2)) auto 1rem;
+      padding: clamp(1.4rem, 5vw, 2.5rem);
+      border: 1px solid #b68c5d;
+      color: #ffebc1;
+      background: #242226;
+      box-shadow: .7rem .7rem #111318, 0 1.5rem 4rem #0007;
+      animation: open-notebook .65s ease-out both;
+    }
+    .gate .tag, .gate label, .gate button {
+      font: 700 .8rem/1.5 var(--mono);
+      letter-spacing: .08em;
+    }
+    .gate .tag { color: #e8ae71; }
+    .gate h1 { margin: .5rem 0; font-size: clamp(2rem, 7vw, 3.15rem); }
+    .gate p { line-height: 1.55; }
+    .gate label { display: grid; gap: .35rem; margin-top: 1rem; }
+    .gate input, .gate button { width: 100%; border: 1px solid #aa835b; padding: .7rem; }
+    .gate input { background: #18191d; color: #fff3d8; font: 1rem system-ui, sans-serif; }
+    .gate button { margin-top: 1.3rem; color: #241913; background: #edbd7d; cursor: pointer; }
+    .gate :focus-visible { outline: 2px solid #92e9ff; outline-offset: 3px; }
+    .gate-error { color: #ffb19f; }
   </style>
 </head>
 <body>
-  <main>
-    <p>OUTATIME / ЛИЧНЫЙ АРХИВ</p>
-    <h1>Блокнот Дока</h1>
-    <p><a href="https://outatime-doc-notebook.inward-natural-4g.chatgpt.site">Перейти ко входу ↗</a></p>
+  <main class="gate" id="gate" aria-labelledby="login-title">
+    <p class="tag">OUTATIME / ЛИЧНЫЙ АРХИВ</p>
+    <h1 id="login-title">Блокнот Дока</h1>
+    <p>На обложке остался отпечаток пальца. Дата под ним стёрта.</p>
+    <p class="gate-error" id="login-error" role="alert" hidden>Логин или пароль не совпали.</p>
+    <form id="login-form">
+      <label>Логин <input id="username" autocapitalize="none" spellcheck="false" autocomplete="username" maxlength="128" required></label>
+      <label>Пароль <input id="password" type="password" autocomplete="current-password" maxlength="128" required></label>
+      <button type="submit">Открыть блокнот ↗</button>
+    </form>
   </main>
+  <main class="console" id="notebook" hidden>
+    <header class="rail">
+      <span class="brand">ЛИЧНЫЙ БЛОКНОТ / ДОК</span>
+      <span class="status" id="status" role="status">СИГНАЛ УСТОЙЧИВ</span>
+    </header>
+    <section class="hero" aria-labelledby="message">
+      <div class="copy">
+        <p class="eyebrow">ЛИСТ 01 / ДАТА НЕ СХОДИТСЯ</p>
+        <h1 id="message" tabindex="-1">Минуточку, Док. Ты что, сделал машину времени… <em>из Волги?</em></h1>
+        <p class="transmission">Ваше будущее ещё не наступило...</p>
+        <aside class="memory" aria-label="Приписка на полях">
+          <p class="eyebrow">ПРИПИСКА НА ПОЛЯХ</p>
+          <p>Отец всегда говорил, что продал её в четверг. В ту неделю четверга не было.</p>
+        </aside>
+        <button class="jump" type="button" id="jump" hidden>Запустить временной прыжок ↗</button>
+      </div>
+      <figure class="machine">
+        <div class="photo">
+        <svg viewBox="0 0 760 510" role="group" aria-labelledby="car-title">
+          <title id="car-title">Чёрная ГАЗ-31105 «Волга» перед светящимся порталом времени</title>
+          <defs>
+            <linearGradient id="paint" x2="0" y2="1">
+              <stop stop-color="#404550"/>
+              <stop offset=".28" stop-color="#151822"/>
+              <stop offset=".61" stop-color="#07080d"/>
+              <stop offset="1" stop-color="#161823"/>
+            </linearGradient>
+            <linearGradient id="glass" x2="1" y2="1">
+              <stop stop-color="#252c3d"/>
+              <stop offset=".49" stop-color="#151928"/>
+              <stop offset="1" stop-color="#090b14"/>
+            </linearGradient>
+            <linearGradient id="chrome" x2="0" y2="1">
+              <stop stop-color="#d0d9eb"/>
+              <stop offset=".45" stop-color="#6f7890"/>
+              <stop offset="1" stop-color="#353c50"/>
+            </linearGradient>
+            <linearGradient id="energy">
+              <stop stop-color="#ff623e"/>
+              <stop offset=".5" stop-color="#ffc482"/>
+              <stop offset="1" stop-color="#69d8ff"/>
+            </linearGradient>
+            <radialGradient id="portal">
+              <stop stop-color="#426df3" stop-opacity="0"/>
+              <stop offset=".57" stop-color="#4f65fa" stop-opacity=".18"/>
+              <stop offset=".79" stop-color="#7861ff" stop-opacity=".5"/>
+              <stop offset="1" stop-color="#4447fd" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="ground">
+              <stop stop-color="#02030a"/>
+              <stop offset="1" stop-color="#02030a" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="beam">
+              <stop stop-color="#c6f3ff" stop-opacity=".63"/>
+              <stop offset="1" stop-color="#62bbff" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <g fill="none" stroke="#a293ed" opacity=".19">
+            <path d="M13 381h734M13 402h734M13 432h734M13 477h734M334 366 60 510m308-144L231 510m174-144v144m36-144 135 144M476 366l272 144"/>
+            <path d="M25 85V42h43m623 0h43v43M25 445v33h43m623 0h43v-33" stroke-width="2"/>
+          </g>
+          <g class="portal-light">
+            <circle cx="470" cy="237" r="224" fill="url(#portal)"/>
+            <circle cx="470" cy="237" r="174" fill="none" stroke="#685cfe" stroke-width="13" opacity=".36"/>
+            <circle cx="470" cy="237" r="173" fill="none" stroke="#aca9ff" stroke-width="2" opacity=".65"/>
+            <circle cx="470" cy="237" r="151" fill="none" stroke="#65d4ff" opacity=".55"/>
+          </g>
+          <circle class="portal-ticks" cx="470" cy="237" r="187" fill="none" stroke="#a3e6ff"
+                  stroke-width="4" stroke-dasharray="2 12" opacity=".7"/>
+          <g fill="none" stroke-linecap="round">
+            <path class="trail" d="M43 319h168m-146 14h113" stroke="#ff9258" stroke-width="3"/>
+            <path class="trail" d="M32 349h222m-192 15h132" stroke="#8cdfff" stroke-width="2"/>
+            <path class="trail" d="M49 387h175m-148 19h99" stroke="#ffbd73" stroke-width="3"/>
+            <path d="m630 126 29-32-5 24 43-35m-477 85 31-21-6 13 33-17m371 41 14-21-1 15 25-14"
+                  stroke="#8fe2ff" stroke-width="2" opacity=".75"/>
+          </g>
+          <ellipse cx="395" cy="410" rx="339" ry="59" fill="url(#ground)"/>
+          <path d="M48 419q219-34 460-11m-399 31q179-32 347-19" fill="none" stroke="url(#energy)" stroke-width="3" opacity=".75"/>
+          <g class="car">
+            <path d="m103 320 18-31q12-9 77-19l99-60q23-14 57-12l104 4q26 2 43 20l44 44 106 20q32 7 44 31l12 32-5 38-38 20-88-6-78-14-369-3-25-16z"
+                  fill="url(#paint)" stroke="#697386" stroke-width="2.5" stroke-linejoin="round"/>
+            <path d="M115 300q68-22 115-23l308-7 100 18M107 333l99-23 277-6 62 25"
+                  fill="none" stroke="#858a9f" stroke-width="2" opacity=".75"/>
+            <path d="m226 272 75-49q21-13 53-13l42 2-14 56zm181-60 49 2q22 2 36 16l42 36-141 2z"
+                  fill="url(#glass)" stroke="#828da5" stroke-width="2"/>
+            <path d="M243 267l78-47m-13 49 31-56m54 57-17 98m-122-92-23 80m292-83-55 27m-208 72 179 4"
+                  fill="none" stroke="#5d6479" stroke-width="2"/>
+            <path d="m452 267 25-8 16 4-4 9-35 1z" fill="#0a0c14" stroke="#798397"/>
+            <path d="M273 308h22m90 0h22" stroke="#a3aabd" stroke-linecap="round" stroke-width="3"/>
+            <path d="M110 312q9-9 32-11l-6 17-28 7z" fill="#f15b52"/>
+            <path d="m507 309 30-23 103 14 24 13-17 10-101-10-23 9z"
+                  fill="#242938" stroke="#646e81" stroke-width="1.5"/>
+            <path d="m577 322 92 6-14 43-79-6z" fill="#090a0f" stroke="url(#chrome)" stroke-width="4"/>
+            <path d="M586 327l-1 35m11-34-2 35m12-34-3 35m13-34-4 35m14-34-5 35m15-34-6 35m16-34-7 35m17-34-8 35"
+                  fill="none" stroke="#939db2" stroke-width="2"/>
+            <path d="M621 333l7 4-2 10-8-1-4-6z" fill="#cfdaeb"/>
+            <path d="M511 318q25-18 58-1l3 24q-17 17-37 3zM673 322q16-10 25 9l7 18q-14 13-29 2z"
+                  fill="#caf1ff" stroke="#f6ffff" stroke-width="2"/>
+            <path d="M526 320q16-4 27 4m-18 7 24 3m120-7 12 7"
+                  fill="none" stroke="#6da7d0" stroke-width="2"/>
+            <ellipse cx="548" cy="332" rx="68" ry="39" fill="url(#beam)" opacity=".52"/>
+            <ellipse cx="692" cy="340" rx="61" ry="41" fill="url(#beam)" opacity=".49"/>
+            <path d="M512 365q64 18 150 19l40-13m-165 13 35 8m81 2 39-10" fill="none" stroke="#747e91" stroke-width="2"/>
+            <a class="plate" id="plate" href="#log" aria-label="В 311 ОЛ. Открыть бортовой журнал" aria-haspopup="dialog">
+              <rect x="570" y="359" width="88" height="52" fill="transparent"/>
+              <path class="plate-face" d="m585 375 61 4-4 15-57-4z" fill="#d3d7e3"/>
+              <text x="614" y="388" fill="#181927" font-family="monospace" font-size="9" text-anchor="middle">В 311 ОЛ</text>
+            </a>
+            <g fill="#08090e" stroke="#41475a" stroke-width="3">
+              <ellipse cx="196" cy="369" rx="36" ry="45"/>
+              <ellipse cx="475" cy="377" rx="42" ry="53"/>
+            </g>
+            <g fill="url(#chrome)" stroke="#b2bdcf" stroke-width="2">
+              <ellipse cx="196" cy="369" rx="19" ry="25"/>
+              <ellipse cx="475" cy="377" rx="23" ry="30"/>
+            </g>
+            <path d="m196 350 0 38m-13-30 26 22m-26 0 26-22m266-4v46m-17-37 34 28m-34 0 34-28"
+                  fill="none" stroke="#343a4c" stroke-width="3"/>
+            <g fill="#171b28">
+              <ellipse cx="196" cy="369" rx="5" ry="7"/>
+              <ellipse cx="475" cy="377" rx="6" ry="8"/>
+            </g>
+          </g>
+          <g fill="#a9a8cb" font-family="monospace" font-size="12" letter-spacing="2">
+            <text x="39" y="63">GAZ / 31105</text>
+            <text x="720" y="465" text-anchor="end">FIG. 01</text>
+          </g>
+        </svg>
+          <div class="flash" aria-hidden="true"></div>
+        </div>
+        <figcaption>Рис. 01. Волга после первого пуска</figcaption>
+      </figure>
+    </section>
+    <dl class="telemetry">
+      <div><dt>КОРПУС</dt><dd>ГАЗ-31105 «ВОЛГА»</dd></div>
+      <div><dt>СКОРОСТЬ</dt><dd id="speed">00 МИЛЬ/Ч</dd></div>
+      <div><dt>ТОЧКА ПРИБЫТИЯ</dt><dd>-- / -- / ----</dd></div>
+    </dl>
+    <div class="logout">
+      <button id="logout" type="button">Закрыть блокнот</button>
+    </div>
+    <dialog class="log" id="log" aria-labelledby="log-title">
+      <p class="eyebrow">В 311 ОЛ / АРХИВ</p>
+      <h2 id="log-title">Бортовой журнал</h2>
+      <p class="eyebrow">ПОСЛЕДНЯЯ ЗАПИСЬ · ДАТА СТЁРТА</p>
+      <blockquote>Я оставил ключи там же, где ты их найдёшь вчера.</blockquote>
+      <form method="dialog">
+        <button class="jump" autofocus>Закрыть журнал</button>
+      </form>
+    </dialog>
+  </main>
+  <script>
+    const gate = document.querySelector('#gate');
+    const loginForm = document.querySelector('#login-form');
+    const loginError = document.querySelector('#login-error');
+    const username = document.querySelector('#username');
+    const password = document.querySelector('#password');
+    const notebook = document.querySelector('#notebook');
+    const notebookTitle = document.querySelector('#message');
+
+    loginForm.addEventListener('submit', event => {
+      event.preventDefault();
+      if (username.value !== 'outatime' || password.value !== '1985') {
+        loginError.hidden = false;
+        password.value = '';
+        password.focus();
+        return;
+      }
+
+      loginForm.reset();
+      loginError.hidden = true;
+      gate.hidden = true;
+      notebook.hidden = false;
+      notebookTitle.focus();
+    });
+
+    document.querySelector('#logout').addEventListener('click', () => {
+      notebook.hidden = true;
+      gate.hidden = false;
+      username.focus();
+    });
+
+    const jump = document.querySelector('#jump');
+    const machine = document.querySelector('.machine');
+    const signalStatus = document.querySelector('#status');
+    const speed = document.querySelector('#speed');
+    const plate = document.querySelector('#plate');
+    const log = document.querySelector('#log');
+
+    plate.addEventListener('click', event => {
+      event.preventDefault();
+      log.showModal();
+    });
+
+    jump.hidden = false;
+    jump.addEventListener('click', () => {
+      if (jump.disabled) return;
+
+      jump.disabled = true;
+      machine.classList.add('is-jumping');
+      signalStatus.textContent = 'ВРЕМЕННОЙ ПРЫЖОК';
+      speed.textContent = '88 МИЛЬ/Ч';
+
+      window.setTimeout(() => {
+        machine.classList.remove('is-jumping');
+        signalStatus.textContent = 'СИГНАЛ ВОССТАНОВЛЕН';
+        speed.textContent = '00 МИЛЬ/Ч';
+        jump.disabled = false;
+      }, 1350);
+    });
+  </script>
 </body>
 </html>
