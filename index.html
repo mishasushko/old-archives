@@ -1,94 +1,187 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>АНТРАКТ</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@500;700&family=VT323&display=swap" rel="stylesheet">
-<style>
-  html, body { margin: 0; height: 100%; }
-  body { background: #000; color: #eee; overflow: hidden; font-family: "Cormorant SC", serif; user-select: none; -webkit-user-select: none;
-         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
-  .hall { position: fixed; inset: -3%; background: url(hall.jpg) center / cover; filter: brightness(.28) sepia(.4); }
-  .beam { position: fixed; left: 50%; top: -10%; width: 140vw; height: 70vh; transform: translateX(-50%); pointer-events: none;
-          background: radial-gradient(ellipse 30% 100% at 50% 0%, rgba(255,240,200,.12), transparent 70%); animation: fl .13s infinite; }
-  @keyframes fl { 50% { opacity: .85; } }
-  .vig { position: fixed; inset: 0; background: radial-gradient(ellipse 60% 55% at 50% 50%, transparent 35%, rgba(0,0,0,.9) 100%); pointer-events: none; }
-  .scr { position: relative; z-index: 2; width: min(760px, calc(100vw - 32px)); aspect-ratio: 16 / 10; background: #d9d2c0; overflow: hidden;
-         box-shadow: 0 0 0 10px #0b0907, 0 0 120px rgba(255,235,190,.25); animation: fl .11s infinite; }
-  .scr video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; opacity: 0; }
-  .scr.ad video { opacity: 1; }
-  .scr.ad .lead { display: none; }
-  .lead { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #1a1612; text-align: center; }
-  .ring { position: absolute; width: 62%; aspect-ratio: 1; border-radius: 50%; border: 3px solid #1a1612; }
-  .ring.b { width: 48%; }
-  .cross { position: absolute; inset: 0; background: linear-gradient(#1a1612, #1a1612) center / 2px 100% no-repeat, linear-gradient(#1a1612, #1a1612) center / 100% 2px no-repeat; opacity: .6; }
-  .sweep { position: absolute; width: 62%; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(rgba(0,0,0,.35) var(--a, 0deg), transparent 0); }
-  .num { position: relative; font: 700 clamp(70px, 18vw, 170px) "Cormorant SC", serif; line-height: 1; }
-  .txt { position: absolute; bottom: 9%; left: 0; right: 0; text-align: center; color: #1a1612; }
-  .txt b { display: block; font-size: clamp(22px, 5vw, 44px); letter-spacing: .1em; }
-  .txt small { font-size: clamp(11px, 2vw, 14px); letter-spacing: .4em; }
-  .dust { position: absolute; inset: 0; pointer-events: none; z-index: 3; mix-blend-mode: multiply; }
-  .scr.ad .dust { mix-blend-mode: screen; opacity: .5; }
-  .tag { position: absolute; top: 4%; left: 4%; z-index: 4; font: 18px "VT323", monospace; color: #1a1612; letter-spacing: .1em; }
-  .scr.ad .tag { color: #e8dcc0; }
-  .reels { position: relative; z-index: 2; display: flex; gap: 22px; }
-  .reels button { background: none; border: 0; padding: 0; cursor: pointer; color: rgba(255,255,255,.6); font: 500 13px "Cormorant SC", serif; letter-spacing: .3em; text-align: center; }
-  .reels img { width: 64px; height: 64px; display: block; margin: 0 auto 6px; filter: brightness(.75); transition: filter .2s; }
-  .reels button:hover img { filter: brightness(1); }
-  .reels button.on img { filter: brightness(1.1) drop-shadow(0 0 10px rgba(255,235,190,.6)); animation: spin 2s linear infinite; }
-  .reels button.on { color: #fff; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .hint { position: relative; z-index: 2; font-size: 13px; letter-spacing: .3em; color: rgba(255,255,255,.45); text-align: center; padding: 0 16px; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#100e0b">
+  <title>ВОЛГА / Машина времени</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #100e0b;
+      --ink: #fff1d7;
+      --amber: #ffb85c;
+      --muted: #bfaa8f;
+      --line: #5a4330;
+      --mono: ui-monospace, "Courier New", monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); }
+    .console {
+      width: min(100% - 3rem, 85rem);
+      min-height: 100svh;
+      margin: auto;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding-block: clamp(1.25rem, 4vw, 3rem);
+    }
+    .rail, .readouts {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      font: 700 .75rem/1.5 var(--mono);
+      letter-spacing: .1em;
+    }
+    .rail { padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+    .brand { color: var(--amber); }
+    .signal { color: var(--muted); text-align: right; }
+    .signal::before {
+      content: "";
+      display: inline-block;
+      width: .5rem;
+      height: .5rem;
+      margin-right: .65em;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 .8rem var(--amber);
+      animation: signal 3s ease-in-out infinite;
+    }
+    @keyframes signal { 50% { opacity: .55; } }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1.07fr;
+      align-items: center;
+      column-gap: 1rem;
+      padding-block: clamp(2.75rem, 8vw, 7rem);
+    }
+    .eyebrow {
+      margin: 0 0 1.15rem;
+      color: var(--amber);
+      font: 700 .75rem/1.5 var(--mono);
+      letter-spacing: .13em;
+    }
+    h1 {
+      margin: 0;
+      font: 800 clamp(2.1rem, 5.5vw, 5.5rem)/.99 system-ui, sans-serif;
+      letter-spacing: -.065em;
+    }
+    h1 em { color: var(--amber); font-style: normal; }
+    .machine {
+      position: relative;
+      margin: 0;
+      min-width: 0;
+      background: radial-gradient(ellipse at 56% 47%, #6d311a55, transparent 66%);
+    }
+    svg { display: block; width: 100%; height: auto; }
+    .readouts {
+      border-top: 1px solid var(--line);
+      padding-top: 1rem;
+      align-items: flex-start;
+      color: var(--muted);
+    }
+    .readouts div { display: grid; gap: .4rem; }
+    .readouts dt { font-size: .68rem; }
+    .readouts dd { margin: 0; color: var(--amber); letter-spacing: .04em; }
+    @media (max-width: 720px) {
+      .hero { grid-template-columns: 1fr; gap: 1.5rem; }
+      h1 { font-size: clamp(2rem, 9vw, 4.25rem); }
+      .machine { max-width: 36rem; width: 100%; justify-self: center; }
+      .rail, .readouts { letter-spacing: .02em; }
+    }
+    @media (max-width: 380px) {
+      .console { width: calc(100% - 2rem); }
+      .readouts { flex-wrap: wrap; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .signal::before { animation: none; }
+    }
+  </style>
 </head>
 <body>
-<div class="hall"></div><div class="beam"></div><div class="vig"></div>
-<div class="scr" id="scr">
-  <video id="v" playsinline preload="none"></video>
-  <div class="lead"><div class="sweep" id="sw"></div><div class="ring"></div><div class="ring b"></div><div class="cross"></div><div class="num" id="num">8</div>
-    <div class="txt"><b>ОБЪЯВЛЯЕТСЯ АНТРАКТ</b><small>киностудия сектор-69 · не выходите из зала</small></div></div>
-  <canvas class="dust" id="d" width="320" height="200"></canvas>
-  <div class="tag" id="tag">АНТРАКТ</div>
-</div>
-<div class="reels" id="reels">
-  <button data-s="reklama.mp4"><img src="reel.png" alt="">плёнка 1</button>
-  <button data-s="reklama3.mp4"><img src="reel.png" alt="">плёнка 2</button>
-  <button data-s="reklama4.mp4"><img src="reel.png" alt="">плёнка 3</button>
-</div>
-<div class="hint" id="hint">во время антракта · реклама на плёнках</div>
-<script>
-  var $ = function (id) { return document.getElementById(id); }, v = $("v"), scr = $("scr");
-  // отсчёт ракорда
-  var n = 8, t0 = Date.now();
-  (function lead() { var p = ((Date.now() - t0) % 1000) / 1000; $("sw").style.setProperty("--a", p * 360 + "deg");
-    var k = 8 - Math.floor((Date.now() - t0) / 1000) % 7; if (k !== n && !$("num").dataset.h) { n = k; $("num").textContent = n; } requestAnimationFrame(lead); })();
-  // пыль и царапины
-  var g = $("d").getContext("2d");
-  (function dust() { g.clearRect(0, 0, 320, 200); g.fillStyle = "rgba(0,0,0,.5)"; g.strokeStyle = "rgba(0,0,0,.35)";
-    for (var i = 0; i < 14; i++) g.fillRect(Math.random() * 320, Math.random() * 200, Math.random() * 2 + .5, Math.random() * 2 + .5);
-    if (Math.random() < .5) { var x = Math.random() * 320; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + Math.random() * 4 - 2, 200); g.stroke(); }
-    setTimeout(dust, 70); })();
-  var bs = document.querySelectorAll("#reels button"), cur = -1;
-  function stop() { v.pause(); scr.className = "scr"; cur = -1; $("tag").textContent = "АНТРАКТ"; [].forEach.call(bs, function (b) { b.className = ""; }); }
-  [].forEach.call(bs, function (b, i) { b.onclick = function () {
-    if (cur === i) { stop(); return; }
-    stop(); cur = i; b.className = "on"; scr.className = "scr ad"; $("tag").textContent = "ПЛЁНКА " + (i + 1);
-    v.src = b.getAttribute("data-s"); v.currentTime = 0; v.play().catch(function () {}); }; });
-  v.onclick = function () { if (v.paused) v.play(); else v.pause(); };
-  v.onended = function () { setTimeout(stop, 700); };
-  // намёк: на долю секунды в ракорде мелькает шестёрка
-  var sm = document.querySelector(".txt small"), base = sm.textContent;
-  (function hint() {
-    setTimeout(function () {
-      if (scr.className === "scr") {
-        var nn = $("num"); nn.style.color = "#ff1493"; nn.textContent = "6"; nn.dataset.h = 1;
-        sm.textContent = "в кадре нужен кто-то другой"; sm.style.color = "#c0006a";
-        setTimeout(function () { nn.style.color = ""; delete nn.dataset.h; sm.textContent = base; sm.style.color = ""; }, 220);
-      }
-      hint();
-    }, 7000 + Math.random() * 9000);
-  })();
-</script>
+  <main class="console">
+    <header class="rail">
+      <span class="brand">ВОЛГА / ХРОНОМОДУЛЬ</span>
+      <span class="signal">СИГНАЛ УСТОЙЧИВ</span>
+    </header>
+    <section class="hero" aria-labelledby="message">
+      <div>
+        <p class="eyebrow">01 / ПЕРЕХВАЧЕННАЯ РЕПЛИКА</p>
+        <h1 id="message">Минуточку, Док. Ты что, сделал машину времени… <em>из Волги?</em></h1>
+      </div>
+      <figure class="machine">
+        <svg viewBox="0 0 640 460" role="img" aria-labelledby="car-title">
+          <title id="car-title">Волга на фоне светящихся колец машины времени</title>
+          <defs>
+            <linearGradient id="body" x2="0" y2="1" gradientUnits="objectBoundingBox">
+              <stop stop-color="#a97656"/>
+              <stop offset=".45" stop-color="#523025"/>
+              <stop offset="1" stop-color="#201712"/>
+            </linearGradient>
+            <linearGradient id="glass" x2="0" y2="1" gradientUnits="objectBoundingBox">
+              <stop stop-color="#44352e"/>
+              <stop offset="1" stop-color="#171311"/>
+            </linearGradient>
+            <radialGradient id="glow">
+              <stop stop-color="#ffad57" stop-opacity=".65"/>
+              <stop offset="1" stop-color="#ff781e" stop-opacity="0"/>
+            </radialGradient>
+            <pattern id="grid" width="26" height="26" patternUnits="userSpaceOnUse">
+              <path d="M26 0H0V26" fill="none" stroke="#a77a54" stroke-opacity=".23"/>
+            </pattern>
+          </defs>
+          <path d="M18 19h604v421H18z" fill="url(#grid)"/>
+          <path d="M18 56V19h37m530 0h37v37M18 403v37h37m530 0h37v-37"
+                fill="none" stroke="#a6764b" stroke-width="2"/>
+          <g fill="none" stroke="#ffa450">
+            <circle cx="340" cy="207" r="166" stroke-opacity=".27"/>
+            <circle cx="340" cy="207" r="155" stroke-width="4" stroke-dasharray="2 9" stroke-opacity=".6"/>
+            <circle cx="340" cy="207" r="140" stroke-opacity=".48"/>
+            <circle cx="340" cy="207" r="115" stroke-opacity=".23"/>
+            <path d="M340 31v27m0 298v27M164 207h27m298 0h27" stroke-opacity=".7"/>
+            <path d="m96 233 63-33-16 24 67-20m264-22 51-46-11 26 44-26m-121 53 35-21"
+                  stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <ellipse cx="331" cy="358" rx="251" ry="35" fill="#080605" opacity=".8"/>
+          <ellipse cx="536" cy="283" rx="86" ry="53" fill="url(#glow)"/>
+          <path d="m81 291 12-28 97-20 69-56q15-11 41-12l88 2q18 0 33 16l51 51 64 9
+                   q20 3 25 21l5 36-17 18-453 4-19-18z"
+                fill="url(#body)" stroke="#e4ad79" stroke-width="2.5"/>
+          <path d="m211 242 57-46q13-9 33-9l46 1-8 53zm141-54 32 1q16 0 26 12l40 41-100-1z"
+                fill="url(#glass)" stroke="#c89b76" stroke-width="2"/>
+          <path d="M187 249h278l62 9M88 282l89-14 294-7m-273-10-13 60m161-66-7 67
+                   m116-63 12 50m-218-40h24m91 0h24"
+                fill="none" stroke="#f5be8c" stroke-opacity=".72" stroke-width="2"/>
+          <path d="M479 280h76l3 27h-86z" fill="#201813" stroke="#b28662" stroke-width="2"/>
+          <path d="M482 293h71m-75 7h77m-85 15h91m-480 3h57m75 0h185"
+                fill="none" stroke="#d2a783" stroke-width="3"/>
+          <path d="M88 277h16v12H86z" fill="#ff7957"/>
+          <circle cx="480" cy="284" r="11" fill="#ffd996" stroke="#fff2d0" stroke-width="2"/>
+          <circle cx="549" cy="284" r="11" fill="#ffd996" stroke="#fff2d0" stroke-width="2"/>
+          <g fill="#17120f" stroke="#755743" stroke-width="3">
+            <circle cx="175" cy="325" r="38"/>
+            <circle cx="437" cy="325" r="38"/>
+          </g>
+          <g fill="#a8876d" stroke="#eed2ab" stroke-width="2">
+            <circle cx="175" cy="325" r="18"/>
+            <circle cx="437" cy="325" r="18"/>
+          </g>
+          <g fill="#453026">
+            <circle cx="175" cy="325" r="8"/>
+            <circle cx="437" cy="325" r="8"/>
+          </g>
+          <g fill="#d1a47e" font-family="monospace" font-size="12" letter-spacing="2">
+            <text x="35" y="47">GAZ / 24</text>
+            <text x="605" y="422" text-anchor="end">FIG. 01</text>
+          </g>
+        </svg>
+      </figure>
+    </section>
+    <dl class="readouts">
+      <div><dt>КОРПУС</dt><dd>ГАЗ-24 «ВОЛГА»</dd></div>
+      <div><dt>КОНТУР ВРЕМЕНИ</dt><dd>ЗАРЯЖЕН</dd></div>
+      <div><dt>ТОЧКА ПРИБЫТИЯ</dt><dd>-- / -- / ----</dd></div>
+    </dl>
+  </main>
 </body>
 </html>
