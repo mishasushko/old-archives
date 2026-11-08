@@ -3,98 +3,160 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#100e0b">
-  <title>ВОЛГА / Машина времени</title>
+  <meta name="theme-color" content="#080916">
+  <title>Волга · Назад в будущее</title>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #100e0b;
-      --ink: #fff1d7;
-      --amber: #ffb85c;
-      --muted: #bfaa8f;
-      --line: #5a4330;
+      --white: #fff5e5;
+      --muted: #b3b1cb;
+      --orange: #ffb46e;
+      --cyan: #92e9ff;
+      --line: #37374f;
       --mono: ui-monospace, "Courier New", monospace;
     }
     *, *::before, *::after { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--ink); }
+    body {
+      margin: 0;
+      color: var(--white);
+      background: radial-gradient(ellipse at 78% 35%, #222044 0, transparent 43%), #080916;
+      font-family: system-ui, sans-serif;
+    }
     .console {
-      width: min(100% - 3rem, 85rem);
+      width: min(100% - 3rem, 79rem);
       min-height: 100svh;
-      margin: auto;
+      margin-inline: auto;
+      padding-block: clamp(1rem, 3.5vw, 2.65rem);
       display: grid;
       grid-template-rows: auto 1fr auto;
-      padding-block: clamp(1.25rem, 4vw, 3rem);
     }
-    .rail, .readouts {
+    .rail, .telemetry {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       gap: 1rem;
-      font: 700 .75rem/1.5 var(--mono);
+      font: 700 .72rem/1.5 var(--mono);
       letter-spacing: .1em;
     }
-    .rail { padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
-    .brand { color: var(--amber); }
-    .signal { color: var(--muted); text-align: right; }
-    .signal::before {
+    .rail { border-bottom: 1px solid var(--line); padding-bottom: 1rem; }
+    .brand { color: var(--orange); }
+    .status { color: var(--muted); text-align: right; }
+    .status::before {
       content: "";
       display: inline-block;
-      width: .5rem;
-      height: .5rem;
-      margin-right: .65em;
+      width: .45rem;
+      height: .45rem;
+      margin-right: .6em;
       border-radius: 50%;
-      background: var(--amber);
-      box-shadow: 0 0 .8rem var(--amber);
-      animation: signal 3s ease-in-out infinite;
+      background: var(--cyan);
+      box-shadow: 0 0 .8rem var(--cyan);
     }
-    @keyframes signal { 50% { opacity: .55; } }
     .hero {
       display: grid;
-      grid-template-columns: 1fr 1.07fr;
+      grid-template-columns: minmax(0, .84fr) minmax(0, 1.16fr);
       align-items: center;
-      column-gap: 1rem;
-      padding-block: clamp(2.75rem, 8vw, 7rem);
+      padding-block: clamp(2rem, 7vw, 6rem);
     }
+    .copy { position: relative; z-index: 1; }
     .eyebrow {
       margin: 0 0 1.15rem;
-      color: var(--amber);
+      color: var(--cyan);
       font: 700 .75rem/1.5 var(--mono);
-      letter-spacing: .13em;
+      letter-spacing: .14em;
     }
     h1 {
+      max-width: 12ch;
       margin: 0;
-      font: 800 clamp(2.1rem, 5.5vw, 5.5rem)/.99 system-ui, sans-serif;
+      font: 900 clamp(2.25rem, 5.15vw, 5.2rem)/.99 system-ui, sans-serif;
       letter-spacing: -.065em;
     }
-    h1 em { color: var(--amber); font-style: normal; }
-    .machine {
-      position: relative;
-      margin: 0;
-      min-width: 0;
-      background: radial-gradient(ellipse at 56% 47%, #6d311a55, transparent 66%);
+    h1 em {
+      color: var(--orange);
+      font-style: italic;
+      text-shadow: 0 0 1.6rem #ff681b55;
     }
-    svg { display: block; width: 100%; height: auto; }
-    .readouts {
-      border-top: 1px solid var(--line);
+    .transmission {
+      max-width: 29ch;
+      margin: 1.45rem 0;
+      padding-left: 1rem;
+      border-left: 2px solid #a6eaff;
+      color: var(--cyan);
+      font: 600 clamp(.85rem, 1.7vw, 1.05rem)/1.6 var(--mono);
+      animation: transmission-in .9s ease-out both;
+    }
+    .jump {
+      padding: .8rem 1rem;
+      border: 1px solid #ffac65;
+      border-radius: .25rem;
+      background: #281523;
+      color: var(--white);
+      font: 700 .77rem/1.5 var(--mono);
+      letter-spacing: .045em;
+      cursor: pointer;
+      transition: background-color .2s, box-shadow .2s;
+    }
+    .jump:hover { background: #512839; box-shadow: 0 0 1.2rem #ff824e55; }
+    .jump:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+    .jump:disabled { opacity: .72; cursor: progress; }
+    .machine { margin: 0; position: relative; isolation: isolate; }
+    svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .portal-ticks { transform-origin: 470px 237px; animation: orbit 24s linear infinite; }
+    .portal-light { animation: pulse 4s ease-in-out infinite; }
+    .trail { animation: trail 3.8s linear infinite; }
+    .trail:nth-of-type(2) { animation-delay: -1.25s; }
+    .trail:nth-of-type(3) { animation-delay: -2.5s; }
+    .flash {
+      position: absolute;
+      inset: 6% 2%;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(ellipse, #d7fbff 0, #55c4ff88 24%, transparent 67%);
+    }
+    .is-jumping .flash { animation: jump-flash 1.35s ease-out; }
+    .is-jumping .car { transform-origin: 417px 345px; animation: car-jump 1.35s ease-in-out; }
+    .is-jumping .portal-ticks { animation-duration: 1.25s; }
+    .telemetry {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin: 0;
       padding-top: 1rem;
-      align-items: flex-start;
+      border-top: 1px solid var(--line);
       color: var(--muted);
     }
-    .readouts div { display: grid; gap: .4rem; }
-    .readouts dt { font-size: .68rem; }
-    .readouts dd { margin: 0; color: var(--amber); letter-spacing: .04em; }
-    @media (max-width: 720px) {
-      .hero { grid-template-columns: 1fr; gap: 1.5rem; }
-      h1 { font-size: clamp(2rem, 9vw, 4.25rem); }
-      .machine { max-width: 36rem; width: 100%; justify-self: center; }
-      .rail, .readouts { letter-spacing: .02em; }
+    .telemetry dd { margin: .35rem 0 0; color: var(--orange); letter-spacing: .035em; }
+    .telemetry div:nth-child(2) dd { color: var(--cyan); }
+    @keyframes orbit { to { transform: rotate(360deg); } }
+    @keyframes pulse { 50% { opacity: .45; } }
+    @keyframes trail {
+      0%, 100% { opacity: 0; transform: translateX(-30px); }
+      38% { opacity: .85; }
+      85% { opacity: 0; transform: translateX(65px); }
     }
-    @media (max-width: 380px) {
+    @keyframes transmission-in {
+      from { opacity: 0; transform: translateY(.4rem); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes jump-flash {
+      0%, 100% { opacity: 0; }
+      44% { opacity: .75; }
+    }
+    @keyframes car-jump {
+      35% { transform: translateX(14px) scale(1.025); }
+      55% { transform: translateX(-14px) scale(.97); }
+    }
+    @media (max-width: 760px) {
+      .hero { grid-template-columns: 1fr; gap: .85rem; }
+      .machine { width: min(100%, 39rem); justify-self: center; }
+      h1 { max-width: 15ch; font-size: clamp(2.2rem, 8.7vw, 4.3rem); }
+      .rail, .telemetry { letter-spacing: .015em; }
+    }
+    @media (max-width: 390px) {
       .console { width: calc(100% - 2rem); }
-      .readouts { flex-wrap: wrap; }
+      .rail, .telemetry { font-size: .65rem; }
+      .telemetry { gap: .5rem; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .signal::before { animation: none; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
     }
   </style>
 </head>
@@ -102,86 +164,154 @@
   <main class="console">
     <header class="rail">
       <span class="brand">ВОЛГА / ХРОНОМОДУЛЬ</span>
-      <span class="signal">СИГНАЛ УСТОЙЧИВ</span>
+      <span class="status" id="status" role="status">СИГНАЛ УСТОЙЧИВ</span>
     </header>
     <section class="hero" aria-labelledby="message">
-      <div>
+      <div class="copy">
         <p class="eyebrow">01 / ПЕРЕХВАЧЕННАЯ РЕПЛИКА</p>
         <h1 id="message">Минуточку, Док. Ты что, сделал машину времени… <em>из Волги?</em></h1>
+        <p class="transmission">Ваше будущее ещё не наступило...</p>
+        <button class="jump" type="button" id="jump" hidden>Запустить временной прыжок ↗</button>
       </div>
       <figure class="machine">
-        <svg viewBox="0 0 640 460" role="img" aria-labelledby="car-title">
-          <title id="car-title">Волга на фоне светящихся колец машины времени</title>
+        <svg viewBox="0 0 760 510" role="img" aria-labelledby="car-title">
+          <title id="car-title">Чёрная ГАЗ-31105 «Волга» перед светящимся порталом времени</title>
           <defs>
-            <linearGradient id="body" x2="0" y2="1" gradientUnits="objectBoundingBox">
-              <stop stop-color="#a97656"/>
-              <stop offset=".45" stop-color="#523025"/>
-              <stop offset="1" stop-color="#201712"/>
+            <linearGradient id="paint" x2="0" y2="1">
+              <stop stop-color="#404550"/>
+              <stop offset=".28" stop-color="#151822"/>
+              <stop offset=".61" stop-color="#07080d"/>
+              <stop offset="1" stop-color="#161823"/>
             </linearGradient>
-            <linearGradient id="glass" x2="0" y2="1" gradientUnits="objectBoundingBox">
-              <stop stop-color="#44352e"/>
-              <stop offset="1" stop-color="#171311"/>
+            <linearGradient id="glass" x2="1" y2="1">
+              <stop stop-color="#252c3d"/>
+              <stop offset=".49" stop-color="#151928"/>
+              <stop offset="1" stop-color="#090b14"/>
             </linearGradient>
-            <radialGradient id="glow">
-              <stop stop-color="#ffad57" stop-opacity=".65"/>
-              <stop offset="1" stop-color="#ff781e" stop-opacity="0"/>
+            <linearGradient id="chrome" x2="0" y2="1">
+              <stop stop-color="#d0d9eb"/>
+              <stop offset=".45" stop-color="#6f7890"/>
+              <stop offset="1" stop-color="#353c50"/>
+            </linearGradient>
+            <linearGradient id="energy">
+              <stop stop-color="#ff623e"/>
+              <stop offset=".5" stop-color="#ffc482"/>
+              <stop offset="1" stop-color="#69d8ff"/>
+            </linearGradient>
+            <radialGradient id="portal">
+              <stop stop-color="#426df3" stop-opacity="0"/>
+              <stop offset=".57" stop-color="#4f65fa" stop-opacity=".18"/>
+              <stop offset=".79" stop-color="#7861ff" stop-opacity=".5"/>
+              <stop offset="1" stop-color="#4447fd" stop-opacity="0"/>
             </radialGradient>
-            <pattern id="grid" width="26" height="26" patternUnits="userSpaceOnUse">
-              <path d="M26 0H0V26" fill="none" stroke="#a77a54" stroke-opacity=".23"/>
-            </pattern>
+            <radialGradient id="ground">
+              <stop stop-color="#02030a"/>
+              <stop offset="1" stop-color="#02030a" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="beam">
+              <stop stop-color="#c6f3ff" stop-opacity=".63"/>
+              <stop offset="1" stop-color="#62bbff" stop-opacity="0"/>
+            </radialGradient>
           </defs>
-          <path d="M18 19h604v421H18z" fill="url(#grid)"/>
-          <path d="M18 56V19h37m530 0h37v37M18 403v37h37m530 0h37v-37"
-                fill="none" stroke="#a6764b" stroke-width="2"/>
-          <g fill="none" stroke="#ffa450">
-            <circle cx="340" cy="207" r="166" stroke-opacity=".27"/>
-            <circle cx="340" cy="207" r="155" stroke-width="4" stroke-dasharray="2 9" stroke-opacity=".6"/>
-            <circle cx="340" cy="207" r="140" stroke-opacity=".48"/>
-            <circle cx="340" cy="207" r="115" stroke-opacity=".23"/>
-            <path d="M340 31v27m0 298v27M164 207h27m298 0h27" stroke-opacity=".7"/>
-            <path d="m96 233 63-33-16 24 67-20m264-22 51-46-11 26 44-26m-121 53 35-21"
-                  stroke-width="2" stroke-linecap="round"/>
+          <g fill="none" stroke="#a293ed" opacity=".19">
+            <path d="M13 381h734M13 402h734M13 432h734M13 477h734M334 366 60 510m308-144L231 510m174-144v144m36-144 135 144M476 366l272 144"/>
+            <path d="M25 85V42h43m623 0h43v43M25 445v33h43m623 0h43v-33" stroke-width="2"/>
           </g>
-          <ellipse cx="331" cy="358" rx="251" ry="35" fill="#080605" opacity=".8"/>
-          <ellipse cx="536" cy="283" rx="86" ry="53" fill="url(#glow)"/>
-          <path d="m81 291 12-28 97-20 69-56q15-11 41-12l88 2q18 0 33 16l51 51 64 9
-                   q20 3 25 21l5 36-17 18-453 4-19-18z"
-                fill="url(#body)" stroke="#e4ad79" stroke-width="2.5"/>
-          <path d="m211 242 57-46q13-9 33-9l46 1-8 53zm141-54 32 1q16 0 26 12l40 41-100-1z"
-                fill="url(#glass)" stroke="#c89b76" stroke-width="2"/>
-          <path d="M187 249h278l62 9M88 282l89-14 294-7m-273-10-13 60m161-66-7 67
-                   m116-63 12 50m-218-40h24m91 0h24"
-                fill="none" stroke="#f5be8c" stroke-opacity=".72" stroke-width="2"/>
-          <path d="M479 280h76l3 27h-86z" fill="#201813" stroke="#b28662" stroke-width="2"/>
-          <path d="M482 293h71m-75 7h77m-85 15h91m-480 3h57m75 0h185"
-                fill="none" stroke="#d2a783" stroke-width="3"/>
-          <path d="M88 277h16v12H86z" fill="#ff7957"/>
-          <circle cx="480" cy="284" r="11" fill="#ffd996" stroke="#fff2d0" stroke-width="2"/>
-          <circle cx="549" cy="284" r="11" fill="#ffd996" stroke="#fff2d0" stroke-width="2"/>
-          <g fill="#17120f" stroke="#755743" stroke-width="3">
-            <circle cx="175" cy="325" r="38"/>
-            <circle cx="437" cy="325" r="38"/>
+          <g class="portal-light">
+            <circle cx="470" cy="237" r="224" fill="url(#portal)"/>
+            <circle cx="470" cy="237" r="174" fill="none" stroke="#685cfe" stroke-width="13" opacity=".36"/>
+            <circle cx="470" cy="237" r="173" fill="none" stroke="#aca9ff" stroke-width="2" opacity=".65"/>
+            <circle cx="470" cy="237" r="151" fill="none" stroke="#65d4ff" opacity=".55"/>
           </g>
-          <g fill="#a8876d" stroke="#eed2ab" stroke-width="2">
-            <circle cx="175" cy="325" r="18"/>
-            <circle cx="437" cy="325" r="18"/>
+          <circle class="portal-ticks" cx="470" cy="237" r="187" fill="none" stroke="#a3e6ff"
+                  stroke-width="4" stroke-dasharray="2 12" opacity=".7"/>
+          <g fill="none" stroke-linecap="round">
+            <path class="trail" d="M43 319h168m-146 14h113" stroke="#ff9258" stroke-width="3"/>
+            <path class="trail" d="M32 349h222m-192 15h132" stroke="#8cdfff" stroke-width="2"/>
+            <path class="trail" d="M49 387h175m-148 19h99" stroke="#ffbd73" stroke-width="3"/>
+            <path d="m630 126 29-32-5 24 43-35m-477 85 31-21-6 13 33-17m371 41 14-21-1 15 25-14"
+                  stroke="#8fe2ff" stroke-width="2" opacity=".75"/>
           </g>
-          <g fill="#453026">
-            <circle cx="175" cy="325" r="8"/>
-            <circle cx="437" cy="325" r="8"/>
+          <ellipse cx="395" cy="410" rx="339" ry="59" fill="url(#ground)"/>
+          <path d="M48 419q219-34 460-11m-399 31q179-32 347-19" fill="none" stroke="url(#energy)" stroke-width="3" opacity=".75"/>
+          <g class="car">
+            <path d="m103 320 18-31q12-9 77-19l99-60q23-14 57-12l104 4q26 2 43 20l44 44 106 20q32 7 44 31l12 32-5 38-38 20-88-6-78-14-369-3-25-16z"
+                  fill="url(#paint)" stroke="#697386" stroke-width="2.5" stroke-linejoin="round"/>
+            <path d="M115 300q68-22 115-23l308-7 100 18M107 333l99-23 277-6 62 25"
+                  fill="none" stroke="#858a9f" stroke-width="2" opacity=".75"/>
+            <path d="m226 272 75-49q21-13 53-13l42 2-14 56zm181-60 49 2q22 2 36 16l42 36-141 2z"
+                  fill="url(#glass)" stroke="#828da5" stroke-width="2"/>
+            <path d="M243 267l78-47m-13 49 31-56m54 57-17 98m-122-92-23 80m292-83-55 27m-208 72 179 4"
+                  fill="none" stroke="#5d6479" stroke-width="2"/>
+            <path d="m452 267 25-8 16 4-4 9-35 1z" fill="#0a0c14" stroke="#798397"/>
+            <path d="M273 308h22m90 0h22" stroke="#a3aabd" stroke-linecap="round" stroke-width="3"/>
+            <path d="M110 312q9-9 32-11l-6 17-28 7z" fill="#f15b52"/>
+            <path d="m507 309 30-23 103 14 24 13-17 10-101-10-23 9z"
+                  fill="#242938" stroke="#646e81" stroke-width="1.5"/>
+            <path d="m577 322 92 6-14 43-79-6z" fill="#090a0f" stroke="url(#chrome)" stroke-width="4"/>
+            <path d="M586 327l-1 35m11-34-2 35m12-34-3 35m13-34-4 35m14-34-5 35m15-34-6 35m16-34-7 35m17-34-8 35"
+                  fill="none" stroke="#939db2" stroke-width="2"/>
+            <path d="M621 333l7 4-2 10-8-1-4-6z" fill="#cfdaeb"/>
+            <path d="M511 318q25-18 58-1l3 24q-17 17-37 3zM673 322q16-10 25 9l7 18q-14 13-29 2z"
+                  fill="#caf1ff" stroke="#f6ffff" stroke-width="2"/>
+            <path d="M526 320q16-4 27 4m-18 7 24 3m120-7 12 7"
+                  fill="none" stroke="#6da7d0" stroke-width="2"/>
+            <ellipse cx="548" cy="332" rx="68" ry="39" fill="url(#beam)" opacity=".52"/>
+            <ellipse cx="692" cy="340" rx="61" ry="41" fill="url(#beam)" opacity=".49"/>
+            <path d="M512 365q64 18 150 19l40-13m-165 13 35 8m81 2 39-10" fill="none" stroke="#747e91" stroke-width="2"/>
+            <path d="m585 375 61 4-4 15-57-4z" fill="#d3d7e3"/>
+            <text x="614" y="388" fill="#181927" font-family="monospace" font-size="9" text-anchor="middle">В 311 ОЛ</text>
+            <g fill="#08090e" stroke="#41475a" stroke-width="3">
+              <ellipse cx="196" cy="369" rx="36" ry="45"/>
+              <ellipse cx="475" cy="377" rx="42" ry="53"/>
+            </g>
+            <g fill="url(#chrome)" stroke="#b2bdcf" stroke-width="2">
+              <ellipse cx="196" cy="369" rx="19" ry="25"/>
+              <ellipse cx="475" cy="377" rx="23" ry="30"/>
+            </g>
+            <path d="m196 350 0 38m-13-30 26 22m-26 0 26-22m266-4v46m-17-37 34 28m-34 0 34-28"
+                  fill="none" stroke="#343a4c" stroke-width="3"/>
+            <g fill="#171b28">
+              <ellipse cx="196" cy="369" rx="5" ry="7"/>
+              <ellipse cx="475" cy="377" rx="6" ry="8"/>
+            </g>
           </g>
-          <g fill="#d1a47e" font-family="monospace" font-size="12" letter-spacing="2">
-            <text x="35" y="47">GAZ / 24</text>
-            <text x="605" y="422" text-anchor="end">FIG. 01</text>
+          <g fill="#a9a8cb" font-family="monospace" font-size="12" letter-spacing="2">
+            <text x="39" y="63">GAZ / 31105</text>
+            <text x="720" y="465" text-anchor="end">FIG. 01</text>
           </g>
         </svg>
+        <div class="flash" aria-hidden="true"></div>
       </figure>
     </section>
-    <dl class="readouts">
-      <div><dt>КОРПУС</dt><dd>ГАЗ-24 «ВОЛГА»</dd></div>
-      <div><dt>КОНТУР ВРЕМЕНИ</dt><dd>ЗАРЯЖЕН</dd></div>
+    <dl class="telemetry">
+      <div><dt>КОРПУС</dt><dd>ГАЗ-31105 «ВОЛГА»</dd></div>
+      <div><dt>СКОРОСТЬ</dt><dd id="speed">00 МИЛЬ/Ч</dd></div>
       <div><dt>ТОЧКА ПРИБЫТИЯ</dt><dd>-- / -- / ----</dd></div>
     </dl>
   </main>
+  <script>
+    const jump = document.querySelector('#jump');
+    const machine = document.querySelector('.machine');
+    const signalStatus = document.querySelector('#status');
+    const speed = document.querySelector('#speed');
+
+    jump.hidden = false;
+    jump.addEventListener('click', () => {
+      if (jump.disabled) return;
+
+      jump.disabled = true;
+      machine.classList.add('is-jumping');
+      signalStatus.textContent = 'ВРЕМЕННОЙ ПРЫЖОК';
+      speed.textContent = '88 МИЛЬ/Ч';
+
+      window.setTimeout(() => {
+        machine.classList.remove('is-jumping');
+        signalStatus.textContent = 'СИГНАЛ ВОССТАНОВЛЕН';
+        speed.textContent = '00 МИЛЬ/Ч';
+        jump.disabled = false;
+      }, 1350);
+    });
+  </script>
 </body>
 </html>
